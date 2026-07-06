@@ -4,17 +4,11 @@ Reference the Writing User Stories final project guide in the course portal for 
 
 ## Outline User Roles
 
-[👉🏾👉🏾👉🏾 Include at least at least 1, but no more than 3, user roles.]
-
 - Parent
 - Student
 - Home cook
 
 ## Draft User Stories
-
-[👉🏾👉🏾👉🏾 Include at least at least 10 user stories in this format:]
-
-As a [user role], I want to [what], so that [why].
 
 1. As a guest, I want to browse available recipes so that I can explore what the app offers before creating an account.
 2. As a registered user, I want to create an account and log in so that I can save my personal information and preferences.
