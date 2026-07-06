@@ -25,9 +25,9 @@ Recapping everything we learned through the prior units.
 
 ### 2. What were some challenges your group faced in this unit?
 
-Generating Ideas, reaching a consensus on the project structure, and collaborating.
+We struggled a bit with generating ideas and collaborating, but were able to manage a rough draft for our project.
 
 ### 3. What additional support will you need in upcoming units as you continue to work on your final project?
 
-Better communication amongst our team. Time spent on labs would be better used on group collaboration.
+I think we need to communicate more amongst our team. It would be nice if we could spend a portion of our lab time on project collaboration.
 
