@@ -1,4 +1,4 @@
-# [EatRite]
+# EatRite
 
 CodePath WEB103 Final Project
 
