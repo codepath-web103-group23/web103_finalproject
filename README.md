@@ -30,12 +30,15 @@ Backend: Express
 
 ## Features
 
-### Home page
+### Home page ✅
 
 - Recipe results page
 - Shows all available recipes
 - Sorts them based on star rating
 - Can ajust results: new, favorite, etc.
+
+Beta demo (gif comming soon)
+<img width="1093" height="949" alt="image" src="https://github.com/user-attachments/assets/e72fc36a-03ef-48ec-8882-9e20865e5555" />
 
 [gif goes here]
 
