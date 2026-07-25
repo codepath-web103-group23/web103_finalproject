@@ -24,7 +24,7 @@ export default Card;
 
 const styles = {
   container: {
-    width: '20%',
+    width: '240px',
     height: '250px',
     border: 'solid black',
     borderRadius: '10px',
