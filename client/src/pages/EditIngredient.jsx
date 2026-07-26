@@ -1,13 +1,13 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import api from '../services/api.jsx'
 
-const AddIngredient = () => {
+const EditIngredient = () => {
   const [ingredient, setIngredient] = useState({
-    name: '',
-    category: '',
-    calories: '',
-    dietary_tags: ''
+    // name: '',
+    // category: '',
+    // calories: '',
+    // dietary_tags: ''
   });
 
   const categories = [
@@ -22,6 +22,8 @@ const AddIngredient = () => {
     'spice rack'
   ]
 
+  const { id } = useParams();
+
   const handleChange = (event) => {
     const {name, value} = event.target
     setIngredient((prev) => {
@@ -32,28 +34,38 @@ const AddIngredient = () => {
     })
   }
 
+
   const navigate = useNavigate()
 
   const handleCancel = (event) => {
     navigate('/kitchen')
   }
 
-  const addIngredient = (event) => {
+  useEffect(() => {
+    const loadIngredient = async () => {
+      const data  = await api.getIngredient(id);
+      setIngredient(data)
+    }
+
+    loadIngredient()
+  }, [id])
+
+  const EditIngredient = (event) => {
     event.preventDefault()
 
     const options = {
-      method: 'POST',
+      method: 'PATCH',
       headers: {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(ingredient)
     }
-    api.addIngredient(options)
+    api.updateIngredient(id, options)
   }
 
   return (
     <div>
-      <h1 style={styles.title}>Add Ingredient</h1>
+      <h1 style={styles.title}>Edit Ingredient</h1>
       <div style={styles.formContainer}>
         <form>
           <label htmlFor="name">
@@ -79,7 +91,7 @@ const AddIngredient = () => {
             style={styles.input}
           >
             {categories.map((cat) => (
-              <option key={cat}>{cat}</option>
+              <option key={cat} value={cat}>{cat}</option>
             ))}
           </select>
           <br />
@@ -110,7 +122,7 @@ const AddIngredient = () => {
             <button 
               type="submit"
               style={styles.btn1}
-              onClick={addIngredient}
+              onClick={EditIngredient}
             >Save</button>
             <button 
               type="submit"
@@ -124,7 +136,7 @@ const AddIngredient = () => {
   )
 }
 
-export default AddIngredient
+export default EditIngredient 
 
 const styles = {
   title: {
