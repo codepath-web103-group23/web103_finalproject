@@ -1,22 +1,23 @@
 import Ingredient from '../components/Ingredient.jsx'
 import Search from '../components/SearchBar.jsx'
+import api from '../services/api.jsx'
 import { useNavigate } from 'react-router-dom'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 const Kitchen = () => {
   const [selectedItem, setSelectedItem] = useState(null);
 
   const [ingredients, setIngredients] = useState([
-    {
-      name: "Eggs",
-      zone: "Refrigerator",
-      quantity: 12,
-    },
-    {
-      name: "Rice",
-      zone: "Pantry",
-      quantity: "5 lbs",
-    },
+    // {
+    //   name: "Eggs",
+    //   zone: "Refrigerator",
+    //   quantity: 12,
+    // },
+    // {
+    //   name: "Rice",
+    //   zone: "Pantry",
+    //   quantity: "5 lbs",
+    // },
   ]);
 
   const navigate = useNavigate()
@@ -25,6 +26,22 @@ const Kitchen = () => {
   const handleAddItem = () => {
     navigate('/addIngredient')
   }
+
+  const handleEdit = (id) => {
+    navigate(`/editIngredient/${id}`)
+  }
+
+  useEffect(() => {
+    const loadIngredients = async () => {
+      const data  = await api.getIngredients();
+      setIngredients(data)
+    }
+
+    loadIngredients()
+    console.log(ingredients)
+  }, [])
+
+  
 
   return (
     <div>
@@ -56,7 +73,10 @@ const Kitchen = () => {
           <tr>
             <th style={styles.header}>Ingredient Name</th>
             <th style={styles.header}>Storage Zone</th>
-            <th style={styles.header}>Quantity</th>
+            <th style={styles.header}>Category</th>
+            <th style={styles.header}>Dietary facts</th>
+            <th style={styles.header}>Edit</th>
+            {/* <th style={styles.header}>Quantity</th> */}
           </tr>
         </thead>
 
@@ -64,7 +84,15 @@ const Kitchen = () => {
           {ingredients.map((ingredient) => (
             <tr key={ingredient.name}>
               <td style={styles.cell}>{ingredient.name}</td>
-              <td style={styles.cell}>{ingredient.zone}</td>
+              <td style={styles.cell}>{ingredient.category}</td>
+              <td style={styles.cell}>{ingredient.calories}</td>
+              <td style={styles.cell}>{ingredient.dietary_tags}</td>
+              <td style={styles.cell}>
+                <button 
+                  style={styles.btn}
+                  onClick={() => handleEdit(ingredient.id)}
+                >Edit</button>
+              </td>
               <td>{ingredient.quantity}</td>
             </tr>
           ))}
@@ -134,6 +162,8 @@ const styles = {
   },
   tableTitle: {
     fontSize: '30px',
+  },
+  btn: {
+    cursor: 'pointer',
   }
-
 }
