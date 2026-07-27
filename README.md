@@ -39,14 +39,14 @@ Backend: Express
 
 [![Demo Video](https://img.youtube.com/vi/sg9T2A7yaAI/0.jpg)](https://www.youtube.com/watch?v=sg9T2A7yaAI)
 
-### User kitchen Page
+### User kitchen Page ✅
 
 - Cards with all Ingredients in users kitchen
 - Link to page to input new ingredients
 
 [![Demo Video](https://img.youtube.com/vi/fpdyUssrY04/0.jpg)](https://youtu.be/fpdyUssrY04)
 
-### Ingredients input page
+### Ingredients input page ✅
 
 - Ingredient input form
 - linked from User kitchen page
