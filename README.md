@@ -37,14 +37,14 @@ Backend: Express
 - Sorts them based on star rating
 - Can ajust results: new, favorite, etc.
 
-[![Watch the demo](https://img.youtube.com/vi/sg9T2A7yaAI/maxresdefault.jpg)](https://www.youtube.com/watch?v=sg9T2A7yaAI)
+[![Demo Video](https://img.youtube.com/vi/sg9T2A7yaAI/0.jpg)](https://www.youtube.com/watch?v=sg9T2A7yaAI)
 
 ### User kitchen Page
 
 - Cards with all Ingredients in users kitchen
 - Link to page to input new ingredients
 
-[gif goes here]
+[![Demo Video](https://img.youtube.com/vi/fpdyUssrY04/0.jpg)](https://youtu.be/fpdyUssrY04)
 
 ### Ingredients input page
 
@@ -52,7 +52,7 @@ Backend: Express
 - linked from User kitchen page
 - Metrics for dietary info
 
-[gif goes here]
+[![Demo Video](https://img.youtube.com/vi/x-i2w46ggYo/0.jpg)](https://youtu.be/x-i2w46ggYo)
 
 ### User Profile
 
