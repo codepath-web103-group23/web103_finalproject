@@ -47,10 +47,22 @@ const updateIngredient = async (id, options) => {
   }
 }
 
+const getRecipes = async () => {
+  try {
+    const response = await fetch(`${API_URL}/recipes`)
+    const data = await response.json()
+    return data
+  } catch (err) {
+    console.log(err)
+  }
+}
+
 export default {
   addIngredient,
   getIngredients,
   getIngredient,
   editIngredient,
   updateIngredient,
+
+  getRecipes,
 }
