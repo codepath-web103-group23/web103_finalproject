@@ -1,10 +1,22 @@
 import React from 'react'
+import { useEffect, useState } from 'react'
 import Card from '../components/Card.jsx'
 import Search from '../components/SearchBar.jsx'
 import pizzaimage from "../assets/pizza_image.jpg"
 import fourstar from "../assets/fourstar.png"
+import api from "../services/api.jsx"
 
 const Home = () => {
+  const [recipes, setRecipes] = useState([])
+
+  useEffect(() => {
+    const loadRecipes = async () => {
+      const data = await api.getRecipes()
+      console.log("API DATA:", data)
+      setRecipes(data)
+    }
+    loadRecipes()
+  }, [])
 
   return (
     <div>
@@ -36,26 +48,18 @@ const Home = () => {
 
       </div>
       <div style={styles.feed}>
-        <Card title="pizza" image_url={pizzaimage} num_stars={4}></Card>
-        <Card title="pizza" image_url={pizzaimage} num_stars={4}></Card>
-        <Card title="pizza" image_url={pizzaimage} num_stars={4}></Card>
-        <Card title="pizza" image_url={pizzaimage} num_stars={4}></Card>
-        <Card title="pizza" image_url={pizzaimage} num_stars={4}></Card>
-        <Card title="pizza" image_url={pizzaimage} num_stars={4}></Card>
-        <Card title="pizza" image_url={pizzaimage} num_stars={4}></Card>
-        <Card title="pizza" image_url={pizzaimage} num_stars={4}></Card>
-        <Card title="pizza" image_url={pizzaimage} num_stars={4}></Card>
-        <Card title="pizza" image_url={pizzaimage} num_stars={4}></Card>
-        <Card title="pizza" image_url={pizzaimage} num_stars={4}></Card>
-        <Card title="pizza" image_url={pizzaimage} num_stars={4}></Card>
-        <Card title="pizza" image_url={pizzaimage} num_stars={4}></Card>
-        <Card title="pizza" image_url={pizzaimage} num_stars={4}></Card>
-        <Card title="pizza" image_url={pizzaimage} num_stars={4}></Card>
-        <Card title="pizza" image_url={pizzaimage} num_stars={4}></Card>
-        <Card title="pizza" image_url={pizzaimage} num_stars={4}></Card>
-        <Card title="pizza" image_url={pizzaimage} num_stars={4}></Card>
-        <Card title="pizza" image_url={pizzaimage} num_stars={4}></Card>
-        <Card title="pizza" image_url={pizzaimage} num_stars={4}></Card>
+        {recipes.map((r) => (
+          <Card
+            key={r.id}
+            id={r.id}
+            title={r.title}
+            image_url={r.image_url}
+            avg_rating={r.avg_rating}
+          ></Card>
+        ))}
+
+        {/* <Card title="pizza" image_url={pizzaimage} num_stars={4}></Card> */}
+
       </div>
     </div>
   )

@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import heart from '../assets/heart.png'
 
-function Card ({id, title, stars, image_url, num_stars}) {
+function Card ({id, title, stars, image_url, avg_rating}) {
 
   return (
     <Link to={`recipe/${id}`} style={styles.container}>
@@ -10,7 +10,7 @@ function Card ({id, title, stars, image_url, num_stars}) {
       <div style={styles.interBox}>
         {/* <img style={styles.starImage} src={star_img} /> */}
         {/* <button>{heart}</button> */}
-        <text>{num_stars} stars</text>
+        <text>{avg_rating} stars</text>
         <button style={styles.button}>
           <img src={heart} alt="Favorite" style={styles.heart} />
         </button>
@@ -36,7 +36,7 @@ const styles = {
     textDecoration: 'none',
   },
   title: {
-    fontSize: '30px',
+    fontSize: '20px',
     textDecoration: 'none',
     color: 'black',
   },
@@ -44,6 +44,7 @@ const styles = {
     display: 'block',
     // width: '150px',
     width: '200px',
+    height: '150px',
     // width: '80%',
     borderRadius: '10px',
     margin: '0 auto',
