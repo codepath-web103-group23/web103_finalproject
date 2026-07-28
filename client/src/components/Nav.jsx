@@ -5,7 +5,7 @@ function Nav () {
     <div style={styles.nav}>
       <div style={styles.title}>EatRite</div>
       <div style={styles.btns}>
-        <Link to="/" style={styles.btn}><strong>Home</strong></Link>
+        <Link to="/home" style={styles.btn}><strong>Home</strong></Link>
         <Link to="/kitchen" style={styles.btn}><strong>My Kitchen</strong></Link>
         <Link to="/calendar" style={styles.btn}><strong>Calendar</strong></Link>
         <Link to="/profile" style={styles.btn}><strong>Profile</strong></Link>

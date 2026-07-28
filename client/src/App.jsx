@@ -5,12 +5,17 @@ import Home from './pages/Home.jsx'
 import Kitchen from './pages/Kitchen.jsx'
 import AddIngredient from './pages/AddIngredient.jsx'
 import EditIngredient from './pages/EditIngredient.jsx'
+import Login from './pages/Login.jsx'
 
 function App() {
   
   let routes = useRoutes([
     {
       path:'/',
+      element: <Login />
+    },
+    {
+      path:'/home',
       element: <Home />
     },
     {
@@ -24,6 +29,10 @@ function App() {
     {
       path:'/editIngredient/:id',
       element: <EditIngredient />
+    },
+    {
+      path:'/login',
+      element: <Login />
     }
   ])
 
