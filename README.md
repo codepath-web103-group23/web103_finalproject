@@ -62,11 +62,11 @@ Backend: Express
 
 [gif goes here]
 
-### User Authentication
+### User Authentication ✅
 
 - login page
 
-[gif goes here]
+[![Demo Video](https://img.youtube.com/vi/mr_CoBDzWKs/0.jpg)](https://youtu.be/mr_CoBDzWKs)
 
 ### Meal Calendar
 
