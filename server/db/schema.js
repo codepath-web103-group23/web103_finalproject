@@ -12,15 +12,21 @@ const createTable = async () => {
     DROP TABLE IF EXISTS ingredients;
     DROP TABLE IF EXISTS users;
 
+    -- CREATE TABLE IF NOT EXISTS users (
+    --     id SERIAL PRIMARY KEY,
+    --     name TEXT NOT NULL,
+    --     email TEXT UNIQUE NOT NULL,
+    --     password_hash TEXT NOT NULL,
+    --     dietary_preferences TEXT
+    -- );
 
-    CREATE TABLE users (
-        id SERIAL PRIMARY KEY,
-        name TEXT NOT NULL,
-        email TEXT UNIQUE NOT NULL,
-        password_hash TEXT NOT NULL,
-        dietary_preferences TEXT
+    CREATE TABLE IF NOT EXISTS users (
+        id serial PRIMARY KEY,
+        githubid integer NOT NULL,
+        username varchar(100) NOT NULL,
+        avatarurl varchar(500) NOT NULL,
+        accesstoken varchar(500) NOT NULL
     );
-
 
     CREATE TABLE ingredients (
         id SERIAL PRIMARY KEY,

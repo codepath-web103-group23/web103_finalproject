@@ -17,7 +17,7 @@ const getIngredients = async () => {
   return result.rows;
 }
 
-const getIngredient = async (req) => {
+const getIngredient = async (req, res) => {
   const { id } = req.params;
   const result = await pool.query(`
     SELECT * FROM ingredients WHERE id = $1`, [id]
