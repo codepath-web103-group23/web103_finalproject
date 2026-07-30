@@ -28,7 +28,7 @@ app.use(cors({
 app.use(session({
   secret: 'codepath',
   resave: false,
-  saveUninitialized: true
+  saveUninitialized: false
 }))
 
 app.use(passport.initialize())

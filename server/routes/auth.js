@@ -16,9 +16,10 @@ router.get('/login/failed', (req, res) => {
 router.get('/logout', (req, res, next) => {
     req.logout((err) => {
       if (err) {
+        console.log('logout failed')
         return next(err)
       }
-
+      console.log('logout successful')
       req.session.destroy((err) => {
         res.clearCookie('connect.sid')
         res.json({ status: "logout", user: {} })
