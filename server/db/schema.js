@@ -25,7 +25,9 @@ const createTable = async () => {
         githubid integer NOT NULL,
         username varchar(100) NOT NULL,
         avatarurl varchar(500) NOT NULL,
-        accesstoken varchar(500) NOT NULL
+        accesstoken varchar(500) NOT NULL,
+        email TEXT UNIQUE,
+        dietary_preferences varchar(500)
     );
 
     CREATE TABLE ingredients (
