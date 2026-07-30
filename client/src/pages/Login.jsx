@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
-import api from '../services/api.jsx'
+import api from '../services/auth.js'
 
 const Login = () => {
 
@@ -18,46 +18,59 @@ const Login = () => {
 
         <form style={styles.inForm}>
 
-          <div style={styles.inputBox}>
-            <label htmlFor="name">
-              Email
-            </label>
-            <input 
-              // id='name'
-              // name='name'
-              // type="text"
-              // value={ingredient.name}
-              // onChange={handleChange}
-              style={styles.input}
-            />
-          </div>
+          {/* <div style={styles.inputBox}> */}
+          {/*   <label htmlFor="name"> */}
+          {/*     Email */}
+          {/*   </label> */}
+          {/*   <input  */}
+          {/*     // id='name' */}
+          {/*     // name='name' */}
+          {/*     // type="text" */}
+          {/*     // value={ingredient.name} */}
+          {/*     // onChange={handleChange} */}
+          {/*     style={styles.input} */}
+          {/*   /> */}
+          {/* </div> */}
 
-          <div style={styles.inputBox}>
-            <label htmlFor="name">
-              Password 
-            </label>
-            <input 
-              // id='name'
-              // name='name'
-              // type="text"
-              // value={ingredient.name}
-              // onChange={handleChange}
-              style={styles.input}
-            />
-          </div>
+          {/* <div style={styles.inputBox}> */}
+          {/*   <label htmlFor="name"> */}
+          {/*     Password  */}
+          {/*   </label> */}
+          {/*   <input  */}
+          {/*     // id='name' */}
+          {/*     // name='name' */}
+          {/*     // type="text" */}
+          {/*     // value={ingredient.name} */}
+          {/*     // onChange={handleChange} */}
+          {/*     style={styles.input} */}
+          {/*   /> */}
+          {/* </div> */}
 
           <div style={styles.inputBox}>
             <button 
-              type="submit"
+              // type="submit"
+              type="button"
+              onClick={api.login}
               style={styles.btn2}
             >Login</button>
           </div>
 
-          <hr style={styles.hr}/>
-          <div style={styles.signupBox}>
-            <p>Don't have an account?</p>
-            <Link to="/about">signup</Link>
-          </div>
+          <button 
+            type="button"
+            onClick={() => {
+              console.log("BUTTON CLICKED")
+              api.login()
+            }}
+            style={styles.btn2}
+          >
+            Login2
+          </button>
+
+          {/* <hr style={styles.hr}/> */}
+          {/* <div style={styles.signupBox}> */}
+          {/*   <p>Don't have an account?</p> */}
+          {/*   <Link to="/about">signup</Link> */}
+          {/* </div> */}
 
 
         </form>

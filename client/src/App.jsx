@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRoutes, Link } from 'react-router-dom'
 import Nav from './components/Nav.jsx'
 import Home from './pages/Home.jsx'
@@ -8,36 +8,98 @@ import EditIngredient from './pages/EditIngredient.jsx'
 import Login from './pages/Login.jsx'
 
 function App() {
+  // const [loggedIn, setLoggedIn] = useState(false)
+  const [user, setUser] = useState({})
+
+  const API_URL = "http://localhost:3000";
+
+  const getUser = async () => {
+    const response = await fetch(`${API_URL}/auth/login/success`, { credentials: 'include' } )
+    const json = await response.json()
+    setUser(json.user)
+  }
+
+  useEffect(() => {
+    const getUser = async () => {
+      const response = await fetch(`${API_URL}/auth/login/success`, { credentials: 'include' } )
+      const json = await response.json()
+      setUser(json.user)
+    }
+
+    getUser()
+  }, []);
   
+  // let routes = useRoutes([
+  //   {
+  //     path:'/',
+  //     element: <Login />
+  //   },
+  //   {
+  //     path:'/home',
+  //     element: <Home />
+  //   },
+  //   {
+  //     path:'/kitchen',
+  //     element: <Kitchen />
+  //   },
+  //   {
+  //     path:'/addIngredient',
+  //     element: <AddIngredient />
+  //   },
+  //   {
+  //     path:'/editIngredient/:id',
+  //     element: <EditIngredient />
+  //   },
+  //   {
+  //     path:'/login',
+  //     element: <Login />
+  //   }
+  // ])
+  
+
   let routes = useRoutes([
     {
-      path:'/',
-      element: <Login />
+      path: '/',
+      element: user && user.id 
+        ? <Home user={user} /> 
+        : <Login api_url={API_URL} />
     },
     {
-      path:'/home',
-      element: <Home />
+      path: '/home',
+      element: user && user.id 
+        ? <Home user={user} /> 
+        : <Login api_url={API_URL} />
     },
     {
-      path:'/kitchen',
-      element: <Kitchen />
+      path: '/kitchen',
+      element: user && user.id 
+        ? <Kitchen user={user} /> 
+        : <Login api_url={API_URL} />
     },
     {
-      path:'/addIngredient',
-      element: <AddIngredient />
+      path: '/addIngredient',
+      element: user && user.id 
+        ? <AddIngredient user={user} api_url={API_URL} /> 
+        : <Login api_url={API_URL} />
     },
     {
-      path:'/editIngredient/:id',
-      element: <EditIngredient />
+      path: '/editIngredient/:id',
+      element: user && user.id 
+        ? <EditIngredient user={user} api_url={API_URL} /> 
+        : <Login api_url={API_URL} />
     },
     {
-      path:'/login',
-      element: <Login />
+      path: '/login',
+      element: <Login api_url={API_URL} />
     }
   ])
 
+
+
+
   return (
     <div>
+      {/* {loggedIn && <Nav></Nav>} */}
       <Nav></Nav>
       {routes}
     </div>

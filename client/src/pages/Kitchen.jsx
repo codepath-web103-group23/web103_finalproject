@@ -81,8 +81,8 @@ const Kitchen = () => {
         </thead>
 
         <tbody>
-          {ingredients.map((ingredient) => (
-            <tr key={ingredient.name}>
+          {Array.isArray(ingredients) && ingredients.map((ingredient) => (
+            <tr key={ingredient.id}>
               <td style={styles.cell}>{ingredient.name}</td>
               <td style={styles.cell}>{ingredient.category}</td>
               <td style={styles.cell}>{ingredient.calories}</td>
