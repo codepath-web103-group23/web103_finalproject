@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
 import api from '../services/auth.js'
+import githubimg from '../assets/githubimage.png'
 
 const Login = () => {
 
@@ -14,7 +15,7 @@ const Login = () => {
     <div>
       <h1 style={styles.appTitle}>EatRite</h1>
       <div style={styles.formContainer}>
-        <h1 style={styles.title}>Login</h1>
+        <h1 style={styles.title}>Login/Sign up</h1>
 
         <form style={styles.inForm}>
 
@@ -52,19 +53,22 @@ const Login = () => {
               type="button"
               onClick={api.login}
               style={styles.btn2}
-            >Login</button>
+            >
+              <img src={githubimg} style={styles.gitimg}/>
+              Continue with Github
+            </button>
           </div>
 
-          <button 
-            type="button"
-            onClick={() => {
-              console.log("BUTTON CLICKED")
-              api.login()
-            }}
-            style={styles.btn2}
-          >
-            Login2
-          </button>
+          {/* <button  */}
+          {/*   type="button" */}
+          {/*   onClick={() => { */}
+          {/*     console.log("BUTTON CLICKED") */}
+          {/*     api.login() */}
+          {/*   }} */}
+          {/*   style={styles.btn2} */}
+          {/* > */}
+          {/*   Login2 */}
+          {/* </button> */}
 
           {/* <hr style={styles.hr}/> */}
           {/* <div style={styles.signupBox}> */}
@@ -82,6 +86,9 @@ const Login = () => {
 export default Login 
 
 const styles = {
+  gitimg:{
+    height: '20px',
+  },
   appTitle: {
     textAlign: 'center',
     fontSize: '50px',
@@ -139,20 +146,21 @@ const styles = {
   btn2: {
     cursor: 'pointer',
     display: 'flex',
+    gap: '10px',
     justifyContent:'center',
+    // justifyContent:'space-between',
+    padding: '0 30px',
     alignItems:'center',
     width: '300px',
-    height: '40px',
+    height: '50px',
     fontSize: '15px',
     fontWeight: 'bold',
     color: 'white',
     backgroundColor: '#333333',
-    // border: 'solid black',
-    padding: '20px',
+    // padding: '20px',
     borderRadius: '5px',
     borderWidth: '1px',
     textDecoration: 'none',
     marginTop: '10px',
-    // margin: '20px auto',
   },
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useRoutes, Link } from 'react-router-dom'
+import { useRoutes, Link, useLocation } from 'react-router-dom'
 import Nav from './components/Nav.jsx'
 import Home from './pages/Home.jsx'
 import Kitchen from './pages/Kitchen.jsx'
@@ -8,24 +8,28 @@ import EditIngredient from './pages/EditIngredient.jsx'
 import Login from './pages/Login.jsx'
 
 function App() {
-  // const [loggedIn, setLoggedIn] = useState(false)
+  const [loggedIn, setLoggedIn] = useState(false)
   const [user, setUser] = useState({})
+  const location = useLocation()
+  const isLoginPage = location.pathname === '/login'
 
   const API_URL = "http://localhost:3000";
 
   const getUser = async () => {
     const response = await fetch(`${API_URL}/auth/login/success`, { credentials: 'include' } )
+
+    if (!response.ok) {
+      setUser(null)
+      setLoggedIn(false)
+      return
+    }
+
     const json = await response.json()
     setUser(json.user)
+    setLoggedIn(true)
   }
 
   useEffect(() => {
-    const getUser = async () => {
-      const response = await fetch(`${API_URL}/auth/login/success`, { credentials: 'include' } )
-      const json = await response.json()
-      setUser(json.user)
-    }
-
     getUser()
   }, []);
   
@@ -99,8 +103,8 @@ function App() {
 
   return (
     <div>
-      {/* {loggedIn && <Nav></Nav>} */}
-      <Nav></Nav>
+      {loggedIn && !isLoginPage && <Nav></Nav>}
+      {/* <Nav></Nav> */}
       {routes}
     </div>
   )
