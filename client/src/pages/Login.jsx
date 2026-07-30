@@ -5,11 +5,11 @@ import githubimg from '../assets/githubimage.png'
 
 const Login = () => {
 
-  const navigate = useNavigate()
-
-  const signup = () => {
-    navigate('/signup')
-  }
+  // const navigate = useNavigate()
+  //
+  // const signup = () => {
+  //   navigate('/signup')
+  // }
 
   return (
     <div>

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom';
 import logoutimg from '../assets/log-out.svg'
 import userimg from '../assets/home-user.svg'
+import auth from '../services/auth.js'
 
 const ProfileMenu = ({ user }) => {
 
@@ -21,10 +22,13 @@ const ProfileMenu = ({ user }) => {
         <img src={userimg}/>
         <strong>Profile</strong>
       </Link>
-      <Link to="/logout" style={styles.btn}>
+      <button 
+        style={styles.logoutBtn}
+        onClick={auth.logout}
+      >
         <img src={logoutimg}/>
         <strong>Logout</strong>
-      </Link>
+      </button>
     </div>
   )
 }
@@ -81,5 +85,21 @@ const styles = {
     textDecoration: 'none',
     margin: '10px',
   },
-
+  logoutBtn: {
+    // backgroundColor: "#27F561",
+    // display: 'block',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 5,
+    fontSize: '15px',
+    color: 'black',
+    border: 'solid black',
+    padding: '20px',
+    width: '130px',
+    borderRadius: '5px',
+    borderWidth: '1px',
+    textDecoration: 'none',
+    margin: '10px',
+  },
 }
