@@ -1,6 +1,20 @@
 import { Link } from 'react-router-dom';
+import { useState } from 'react'
+import Menu from '../components/ProfileMenu.jsx'
 
-function Nav () {
+function Nav ({ user }) {
+  const [menuOpen, setMenuOpen] = useState(false)
+
+  const toggleMenu = () => {
+    if (menuOpen == true) {
+      setMenuOpen(false)
+    } if (menuOpen == false) {
+      setMenuOpen(true)
+    }
+
+    console.log(`menuOpen: ${menuOpen}`)
+  }
+
   return (
     <div style={styles.nav}>
       <div style={styles.title}>EatRite</div>
@@ -8,7 +22,23 @@ function Nav () {
         <Link to="/home" style={styles.btn}><strong>Home</strong></Link>
         <Link to="/kitchen" style={styles.btn}><strong>My Kitchen</strong></Link>
         <Link to="/calendar" style={styles.btn}><strong>Calendar</strong></Link>
-        <Link to="/profile" style={styles.btn}><strong>Profile</strong></Link>
+        {/* <Link to="/profile" style={styles.btn}><strong>Profile</strong></Link> */}
+        <div style={styles.profileContainer}>
+
+          <button to="/profile" 
+            style={{
+              ...styles.profileBtn,
+              backgroundImage: `url(${user.avatarurl})`
+            }}
+            onClick={() => toggleMenu()}
+          >
+
+          </button>
+          {menuOpen && (
+            <Menu user={user}></Menu>
+          )}
+
+        </div>
       </div>
     </div>
   );
@@ -17,6 +47,9 @@ function Nav () {
 export default Nav;
 
 const styles = {
+  profileImg: {
+    // width: '50px'
+  },
   nav: {
     // backgroundImage: `url(${navpattern})`,
     // backgroundColor: 'gray',
@@ -30,8 +63,35 @@ const styles = {
     paddingRight: '10px',
     marginBottom: '5px',
   }, 
+  btns: {
+    display: 'flex',
+    alignItems: 'center',
+  },
+  profileContainer: {
+    position: 'relative',
+
+  },
+  profileBtn: {
+    // backgroundColor: "#27F561",
+    // backgroundImage: `url(${user.avatarurl})`,
+    cursor: 'pointer',
+    display: 'block',
+    width: '4px',
+    height: '4px',
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    fontSize: '15px',
+    color: 'black',
+    border: 'solid gray',
+    padding: '20px',
+    borderRadius: '50px',
+    borderWidth: '0.1px',
+    textDecoration: 'none',
+    margin: '10px',
+  },
   btn: {
     // backgroundColor: "#27F561",
+    display: 'block',
     fontSize: '15px',
     color: 'black',
     border: 'solid black',

@@ -103,7 +103,7 @@ function App() {
 
   return (
     <div>
-      {loggedIn && !isLoginPage && <Nav></Nav>}
+      {loggedIn && !isLoginPage && <Nav user={user}></Nav>}
       {/* <Nav></Nav> */}
       {routes}
     </div>
