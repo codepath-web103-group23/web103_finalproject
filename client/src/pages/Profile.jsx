@@ -1,0 +1,158 @@
+import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
+import Card from '../components/Card.jsx'
+
+const Profile = ({ user }) => {
+  return (
+    <div>
+      <div style={styles.info}>
+        <img src={user.avatarurl} style={styles.infoImg}/>
+        <div>
+          <p style={styles.username}>{user.username}</p>
+          <Link to='/edit/profile' style={styles.editBtn}>Edit Profile</Link>
+        </div>
+      </div>
+      <div style={styles.prefBox}>
+        <div style={styles.innerPref}>
+          <p style={styles.dietTitle}>Dietary Preferences</p>
+          <Link to='/edit/preferences' style={styles.editPrefBtn}>Edit Preferences</Link>
+        </div>
+        <div style={styles.prefs}>
+          <div style={styles.itemPref}>
+
+          </div>
+        </div>
+      </div>
+
+      <div style={styles.kitchenBox}>
+        <h1>My Kitchen</h1>
+        <Link to='/kitchen' style={styles.kitchenLink}> View ➟</Link>
+      </div>
+
+      <p style={styles.favTitle}>Favorite Recipes</p>
+      <div style={styles.favBox}>
+        <Card></Card>
+        <Card></Card>
+        <Card></Card>
+        <Card></Card>
+        <Card></Card>
+        <Card></Card>
+        <Card></Card>
+        <Card></Card>
+      </div>
+
+    </div>
+  )
+}
+
+export default Profile
+
+const styles = {
+  info: {
+    display: 'flex',
+    gap: 20,
+    // border: 'solid black',
+    padding: '10px',
+    marginLeft: '10px',
+    marginTop: '20px',
+
+  },
+  favBox: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    // margin: '10px',
+    gap: 10,
+
+  },
+  prefBox: {
+    display: 'flex',
+    flexDirection: 'column',
+    // justifyContent: 'space-between',
+    border: 'solid black',
+    borderRadius: '10px',
+    height: '150px',
+    marginTop: '20px',
+    marginLeft: '10px',
+  },
+  kitchenBox: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingLeft: '40px',
+    paddingRight: '40px',
+    border: 'solid black',
+    borderRadius: '10px',
+    height: '100px',
+    marginTop: '20px',
+    marginLeft: '10px',
+  },
+  prefs: {
+    display: 'flex',
+    gap: 10,
+    marginLeft: '30px',
+  },
+  itemPref: {
+    border: 'solid black',
+    borderRadius: '15px',
+    width: '125px',
+    height: '30px',
+    backgroundColor: '#dcdcdc',
+  },
+  innerPref: {
+    display: 'flex',
+    width: '100%',
+    justifyContent: 'space-between',
+    // padding: '15px',
+  },
+  infoImg: {
+    display:'block',
+    width: '100px',
+    borderRadius: '50%',
+  },
+  username: {
+    fontSize: '30px',
+    marginBottom: '15px',
+  },
+  dietTitle: {
+    display: 'block',
+    fontSize: '25px',
+    marginLeft: '20px',
+  },
+  favTitle: {
+    fontSize: '25px',
+    marginLeft: '20px',
+  },
+  editBtn: {
+    textDecoration: 'none',
+    color: 'black',
+    cursor: 'pointer',
+    height: '40px',
+    width: '100px',
+    border: 'solid black',
+    borderRadius: '5px',
+    borderWidth:'1px',
+    padding: '10px',
+    // marginRight: '25px',
+    // marginTop: '10px',
+  },
+  editPrefBtn: {
+    fontSize:'20px',
+    marginRight: '25px',
+    marginTop: '25px',
+    textDecoration: 'none',
+    color: 'black',
+    cursor: 'pointer',
+    height: '25px',
+    width: '140px',
+    border: 'solid black',
+    borderRadius: '5px',
+    borderWidth:'1px',
+    padding: '10px',
+  },
+  kitchenLink: {
+    fontSize: '25px',
+    textDecoration: 'none',
+    color: 'black',
+  }
+
+}

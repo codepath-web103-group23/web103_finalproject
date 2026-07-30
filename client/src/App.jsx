@@ -6,6 +6,7 @@ import Kitchen from './pages/Kitchen.jsx'
 import AddIngredient from './pages/AddIngredient.jsx'
 import EditIngredient from './pages/EditIngredient.jsx'
 import Login from './pages/Login.jsx'
+import Profile from './pages/Profile.jsx'
 
 function App() {
   const [loggedIn, setLoggedIn] = useState(false)
@@ -91,6 +92,12 @@ function App() {
       element: user && user.id 
         ? <EditIngredient user={user} api_url={API_URL} /> 
         : <Login api_url={API_URL} />
+    },
+    {
+      path: '/profile',
+      element: user && user.id
+      ? <Profile user={user}></Profile>
+      : <Login></Login>
     },
     {
       path: '/login',
