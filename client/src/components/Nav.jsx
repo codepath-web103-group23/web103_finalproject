@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom';
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Menu from '../components/ProfileMenu.jsx'
 
 function Nav ({ user }) {
   const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef(null)
 
   const toggleMenu = () => {
     if (menuOpen == true) {
@@ -15,6 +16,21 @@ function Nav ({ user }) {
     console.log(`menuOpen: ${menuOpen}`)
   }
 
+  useEffect(() => {
+    const closeMenu = (e) => {
+      if (!menuRef.current.contains(e.target)) {
+        setMenuOpen(false)
+      }
+    }
+
+    document.addEventListener("mousedown", closeMenu)
+
+    return () => {
+      document.removeEventListener("mousedown", closeMenu)
+    }
+
+  }, [])
+
   return (
     <div style={styles.nav}>
       <div style={styles.title}>EatRite</div>
@@ -23,7 +39,9 @@ function Nav ({ user }) {
         <Link to="/kitchen" style={styles.btn}><strong>My Kitchen</strong></Link>
         <Link to="/calendar" style={styles.btn}><strong>Calendar</strong></Link>
         {/* <Link to="/profile" style={styles.btn}><strong>Profile</strong></Link> */}
-        <div style={styles.profileContainer}>
+        <div 
+          ref={menuRef}
+          style={styles.profileContainer}>
 
           <button to="/profile" 
             style={{
