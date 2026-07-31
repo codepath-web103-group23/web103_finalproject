@@ -1,27 +1,60 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import Card from '../components/Card.jsx'
+import EditPreferences from './EditPreferences.jsx'
+import preferenceApi from '../services/preferenceApi.js'
 
 const Profile = ({ user }) => {
+  const [editBox, setEditBox] = useState(false)
+  const [preferences, setPreferences] = useState([]) 
+
+  const toggle = () => {
+    if (editBox === false) {
+      setEditBox(true)
+    } else if (editBox === true) {
+      setEditBox(false)
+    }
+  }
+
+  useEffect(() => {
+    const fetchPreference = async () => {
+      const data = await preferenceApi.getPreferences()
+      setPreferences(data)
+      // console.log(data)
+    }
+    fetchPreference()
+  }, [preferences])
+
   return (
-    <div>
+    <div style={styles.profileBox}>
+
+      {editBox && (<EditPreferences toggle={toggle}></EditPreferences>)}
+
       <div style={styles.info}>
         <img src={user.avatarurl} style={styles.infoImg}/>
         <div>
           <p style={styles.username}>{user.username}</p>
-          <Link to='/edit/profile' style={styles.editBtn}>Edit Profile</Link>
+          {/* <Link to='/edit/profile' style={styles.editBtn}>Edit Profile</Link> */}
+          {/* <button style={styles.editBtn}>Edit Profile</button> */}
         </div>
       </div>
+
       <div style={styles.prefBox}>
+
         <div style={styles.innerPref}>
           <p style={styles.dietTitle}>Dietary Preferences</p>
-          <Link to='/edit/preferences' style={styles.editPrefBtn}>Edit Preferences</Link>
+          {/* <Link to='/edit/preferences' style={styles.editPrefBtn}>Edit Preferences</Link> */}
+          <button onClick={toggle} style={styles.editPrefBtn}>Edit Preferences</button>
         </div>
-        <div style={styles.prefs}>
-          <div style={styles.itemPref}>
 
-          </div>
+        <div style={styles.prefs}>
+          {
+            preferences.map((p) => (
+              <div key={p.id} style={styles.itemPref}>{p.preference}</div>
+            ))
+          }
         </div>
+
       </div>
 
       <div style={styles.kitchenBox}>
@@ -48,6 +81,9 @@ const Profile = ({ user }) => {
 export default Profile
 
 const styles = {
+  profileBox: {
+    position: 'relative',
+  },
   info: {
     display: 'flex',
     gap: 20,
@@ -70,7 +106,8 @@ const styles = {
     // justifyContent: 'space-between',
     border: 'solid black',
     borderRadius: '10px',
-    height: '150px',
+    padding: '10px',
+    // height: '150px',
     marginTop: '20px',
     marginLeft: '10px',
   },
@@ -86,14 +123,19 @@ const styles = {
     marginTop: '20px',
     marginLeft: '10px',
   },
-  prefs: {
+  prefs: { 
     display: 'flex',
+    flexWrap: 'wrap',
+    // alignItems: 'center',
     gap: 10,
     marginLeft: '30px',
+    marginTop: '10px',
   },
   itemPref: {
     border: 'solid black',
     borderRadius: '15px',
+    textAlign: 'center',
+    fontSize: '20px',
     width: '125px',
     height: '30px',
     backgroundColor: '#dcdcdc',
@@ -142,8 +184,8 @@ const styles = {
     textDecoration: 'none',
     color: 'black',
     cursor: 'pointer',
-    height: '25px',
-    width: '140px',
+    height: '45px',
+    width: '180px',
     border: 'solid black',
     borderRadius: '5px',
     borderWidth:'1px',

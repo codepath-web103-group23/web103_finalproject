@@ -8,6 +8,7 @@ const createTable = async () => {
     DROP TABLE IF EXISTS favorites;
     DROP TABLE IF EXISTS recipe_ingredients;
     DROP TABLE IF EXISTS kitchen;
+    DROP TABLE IF EXISTS dietary_preferences;
     DROP TABLE IF EXISTS recipes;
     DROP TABLE IF EXISTS ingredients;
     DROP TABLE IF EXISTS users;
@@ -26,8 +27,17 @@ const createTable = async () => {
         username varchar(100) NOT NULL,
         avatarurl varchar(500) NOT NULL,
         accesstoken varchar(500) NOT NULL,
-        email TEXT UNIQUE,
-        dietary_preferences varchar(500)
+        email TEXT UNIQUE
+    );
+
+    CREATE TABLE IF NOT EXISTS dietary_preferences (
+        id serial PRIMARY KEY,
+        user_id INTEGER NOT NULL,
+        preference varchar(500) NOT NULL,
+
+        FOREIGN KEY (user_id)
+            REFERENCES users(id)
+            ON DELETE CASCADE
     );
 
     CREATE TABLE ingredients (

@@ -1,14 +1,16 @@
-import controller from '/controllers/userController.js' 
+import controller from '../controllers/usercontroller.js' 
 import express from 'express' 
 
 const router = express.Router()
 
-router.get('/users', controller.getUsers)
-router.get('/users/:id', controller.getUser)
-router.post('/create/user', controller.createUser)
-router.patch('/patch/user/:id', controller.updateUser)
-router.delete('/delete/user/:id', controller.deleteUser)
+// router.get('/users', controller.getusers)
+// router.get('/users/:id', controller.getuser)
+// router.post('/create/user', controller.createuser)
+// router.patch('/patch/user/:id', controller.updateuser)
+// router.delete('/delete/user/:id', controller.deleteuser)
 
-export defult router
+// router.patch('/create/preference', controller.createpreference)
+
+export default router
 
 
