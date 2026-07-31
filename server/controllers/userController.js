@@ -12,6 +12,7 @@ const getUsers = async (req, res) => {
 const getUser = async (req, res) => {
   try {
     const response = await model.getUser(req, res)
+    res.status(200).json(response)
   } catch (err) {
     res.status(500).json({ message: err.message })
   }
@@ -44,10 +45,21 @@ const deleteUser = async (req, res) => {
   }
 }
 
+const createPreference = async (req, res) => {
+  try {
+    const response = await model.updateDietaryPreferences(req, res)
+    res.status(200).json(response)
+  } catch (err) {
+    return res.status(500).json({ message: err.message })
+  }
+}
+
+
 export default {
   getUsers,
   getUser,
   createUser,
   updateUser,
   deleteUser,
+  createPreference,
 }
