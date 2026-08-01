@@ -72,11 +72,11 @@ const Kitchen = () => {
         <thead>
           <tr>
             <th style={styles.header}>Ingredient Name</th>
-            <th style={styles.header}>Storage Zone</th>
             <th style={styles.header}>Category</th>
+            <th style={styles.header}>Calories</th>
             <th style={styles.header}>Dietary facts</th>
+            <th style={styles.header}>Quantity</th>
             <th style={styles.header}>Edit</th>
-            {/* <th style={styles.header}>Quantity</th> */}
           </tr>
         </thead>
 
@@ -87,13 +87,13 @@ const Kitchen = () => {
               <td style={styles.cell}>{ingredient.category}</td>
               <td style={styles.cell}>{ingredient.calories}</td>
               <td style={styles.cell}>{ingredient.dietary_tags}</td>
+              <td style={styles.cell}>{ingredient.quantity}</td>
               <td style={styles.cell}>
-                <button 
+                <button
                   style={styles.btn}
                   onClick={() => handleEdit(ingredient.id)}
                 >Edit</button>
               </td>
-              <td>{ingredient.quantity}</td>
             </tr>
           ))}
         </tbody>

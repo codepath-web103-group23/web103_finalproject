@@ -19,19 +19,21 @@ const EditPreferences = ({ toggle }) => {
 
   }
 
-  useEffect(() => {
-    const fetchPreference = async () => {
-      const data = await preferenceApi.getPreferences()
-      setPreferences(data)
-      // console.log(data)
-    }
-    fetchPreference()
-  }, [preferences])
+  const fetchPreferences = async () => {
+    const data = await preferenceApi.getPreferences()
+    setPreferences(data)
+  }
 
-  const createPreference = (event) => {
+  useEffect(() => {
+    fetchPreferences()
+  }, [])
+
+  const createPreference = async (event) => {
     event.preventDefault()
 
-    preferenceApi.createPreference(newPref)
+    await preferenceApi.createPreference(newPref)
+    setNewPref({ preference: '' })
+    fetchPreferences()
   }
 
   return (
@@ -39,7 +41,7 @@ const EditPreferences = ({ toggle }) => {
       <h1 style={styles.title}>Preferences</h1>
       <div style={styles.prefBox}>
         {preferences.map((p) => (
-          <PrefItem id={p.id} preference={p.preference} onChange={handleChange}></PrefItem>
+          <PrefItem key={p.id} id={p.id} preference={p.preference} onChange={handleChange} refresh={fetchPreferences}></PrefItem>
         ))}
       </div>
       <div style={styles.bottomBox}>

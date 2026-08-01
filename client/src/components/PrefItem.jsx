@@ -2,11 +2,11 @@ import react from 'react'
 import preferenceApi from '../services/preferenceApi.js'
 
 
-const PrefItem = ({ id, preference }) => {
+const PrefItem = ({ id, preference, refresh }) => {
 
-  const deletePreference = (id) => {
-
-    preferenceApi.deletePreference(id)
+  const deletePreference = async (id) => {
+    await preferenceApi.deletePreference(id)
+    refresh?.()
   }
 
   return (
