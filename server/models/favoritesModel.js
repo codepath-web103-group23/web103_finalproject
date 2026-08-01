@@ -27,13 +27,26 @@ const createFavorite = async (req, res) => {
     RETURNING *`, [userId, recipe_id])
   // console.log(`model creating favorite ${result.rows[0]}`)
   return result.rows[0]
+}
 
+const deleteFavorite = async (req, res) => {
+  const { id } = req.params
+  const userId = req.user.id
+  console.log(`recipeID: ${id}`)
+  console.log(`userID: ${userId}`)
+  const result = await pool.query(`
+    DELETE FROM favorites 
+    WHERE user_id=$1 AND recipe_id=$2
+    RETURNING *`, [userId,id])
+  console.log(`RESULT: ${result}`)
+  return result.rows[0]
 }
 
 export default {
   getFavorites,
   getFavorite,
   createFavorite,
+  deleteFavorite,
 }
 
 
