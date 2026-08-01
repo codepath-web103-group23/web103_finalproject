@@ -1,22 +1,33 @@
 import { Link } from 'react-router-dom'
 import heart from '../assets/heart.png'
+import favoritesApi from '../services/favoritesApi.js'
 
 function Card ({id, title, stars, image_url, avg_rating}) {
 
+  const createFavorite = (recipe_id) => {
+     
+    favoritesApi.createFavorite(recipe_id)
+  }
+
   return (
-    <Link to={`recipe/${id}`} style={styles.container}>
-      <img src={image_url} style={styles.img} />
+    <div style={styles.container}>
+      <Link to={`recipe/${id}`}>
+        <img src={image_url} style={styles.img} />
+      </Link>
       <h1 style={styles.title}>{title}</h1>
       <div style={styles.interBox}>
         {/* <img style={styles.starImage} src={star_img} /> */}
         {/* <button>{heart}</button> */}
         <text>{avg_rating} stars</text>
-        <button style={styles.button}>
+        <button 
+          onClick={() => createFavorite(id)}
+          style={styles.button}
+        >
           <img src={heart} alt="Favorite" style={styles.heart} />
         </button>
       </div>
       {/* <Link to={`/recipe/${id}`} style={styles.btn}>Recipe</Link> */}
-    </Link>
+    </div>
   )
 }
 

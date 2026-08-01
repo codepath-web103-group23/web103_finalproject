@@ -5,6 +5,7 @@ import IngredientsRoutes from './routes/ingredientsRoutes.js'
 import RecipeRoutes from './routes/recipeRoutes.js'
 import UserRoutes from './routes/userRoutes.js'
 import PreferenceRoutes from './routes/preferencesRoutes.js'
+import FavoriteRoutes from './routes/favoritesRoutes.js'
 
 // authentication libraries
 import passport from 'passport'
@@ -48,6 +49,8 @@ app.use('/api', IngredientsRoutes)
 app.use('/api', RecipeRoutes)
 app.use('/api', UserRoutes)
 app.use('/api', PreferenceRoutes)
+app.use('/api', FavoriteRoutes)
+
 app.use('/auth', authRoutes)
 
 // app.get('/', function (req, res) {
