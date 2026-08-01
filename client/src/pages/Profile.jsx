@@ -3,10 +3,14 @@ import { Link } from 'react-router-dom'
 import Card from '../components/Card.jsx'
 import EditPreferences from './EditPreferences.jsx'
 import preferenceApi from '../services/preferenceApi.js'
+import favoritesApi from '../services/favoritesApi.js'
+import api from "../services/api.jsx"
 
 const Profile = ({ user }) => {
   const [editBox, setEditBox] = useState(false)
   const [preferences, setPreferences] = useState([]) 
+  const [favorites, setFavorites] = useState([]) 
+  const [recipes, setRecipes] = useState([]) 
 
   const toggle = () => {
     if (editBox === false) {
@@ -17,13 +21,24 @@ const Profile = ({ user }) => {
   }
 
   useEffect(() => {
-    const fetchPreference = async () => {
-      const data = await preferenceApi.getPreferences()
-      setPreferences(data)
-      // console.log(data)
+    const fetchData = async () => {
+      const dataP = await preferenceApi.getPreferences()
+      setPreferences(dataP)
+
+      const dataF = await favoritesApi.getFavorites()
+      setFavorites(dataF)
+
+      const recipePromises = dataF.map((favorite) => 
+        api.getRecipe(favorite.recipe_id))
+
+      const recipeData = await Promise.all(recipePromises)
+
+      setRecipes(recipeData)
+      console.log(recipeData)
     }
-    fetchPreference()
-  }, [preferences])
+    
+    fetchData()
+  }, [])
 
   return (
     <div style={styles.profileBox}>
@@ -64,14 +79,24 @@ const Profile = ({ user }) => {
 
       <p style={styles.favTitle}>Favorite Recipes</p>
       <div style={styles.favBox}>
-        <Card></Card>
-        <Card></Card>
-        <Card></Card>
-        <Card></Card>
-        <Card></Card>
-        <Card></Card>
-        <Card></Card>
-        <Card></Card>
+        {recipes.map((r) => (
+          <Card
+            key={r.id}
+            id={r.id}
+            title={r.title}
+            image_url={r.image_url}
+            avg_rating={r.avg_rating}
+          ></Card>
+        ))}
+
+        {/* <Card></Card> */}
+        {/* <Card></Card> */}
+        {/* <Card></Card> */}
+        {/* <Card></Card> */}
+        {/* <Card></Card> */}
+        {/* <Card></Card> */}
+        {/* <Card></Card> */}
+        {/* <Card></Card> */}
       </div>
 
     </div>
