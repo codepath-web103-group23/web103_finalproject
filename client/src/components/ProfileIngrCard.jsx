@@ -8,7 +8,7 @@ function Card ({id, title, stars, image_url, avg_rating, refresh}) {
   const deleteFavorite = (recipe_id) => {
      
     favoritesApi.deleteFavorite(recipe_id)
-    refresh(recipe_id)
+    refresh(recipe_id, 'fav')
   }
 
   return (

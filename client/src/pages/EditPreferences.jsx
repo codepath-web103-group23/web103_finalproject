@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import preferenceApi from '../services/preferenceApi.js'
 import PrefItem from '../components/PrefItem.jsx'
 
-const EditPreferences = ({ toggle }) => {
+const EditPreferences = ({ toggle, delRefresh, inRefresh}) => {
   const [preferences, setPreferences] = useState([]) 
   const [newPref, setNewPref] = useState({ preference: ''})
 
@@ -16,7 +16,13 @@ const EditPreferences = ({ toggle }) => {
         [name]:value,
       }
     })
+  }
 
+  const handleModalDeleteRefresh = (id) => {
+    setPreferences(prev =>
+      prev.filter(preference => preference.id !== id)
+    )
+    console.log('delete modal refreshing')
   }
 
   useEffect(() => {
@@ -26,12 +32,17 @@ const EditPreferences = ({ toggle }) => {
       // console.log(data)
     }
     fetchPreference()
-  }, [preferences])
+  }, [])
 
   const createPreference = (event) => {
     event.preventDefault()
 
     preferenceApi.createPreference(newPref)
+    setPreferences(prev => [
+      ...prev,
+      newPref 
+    ])
+    inRefresh(newPref)
   }
 
   return (
@@ -39,7 +50,13 @@ const EditPreferences = ({ toggle }) => {
       <h1 style={styles.title}>Preferences</h1>
       <div style={styles.prefBox}>
         {preferences.map((p) => (
-          <PrefItem id={p.id} preference={p.preference} onChange={handleChange}></PrefItem>
+          <PrefItem 
+            id={p.id} 
+            preference={p.preference} 
+            onChange={handleChange} 
+            delRefresh={delRefresh}
+            delModalRefresh={handleModalDeleteRefresh}
+          ></PrefItem>
         ))}
       </div>
       <div style={styles.bottomBox}>
