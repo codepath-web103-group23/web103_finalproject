@@ -30,7 +30,22 @@ const getFavorites = async () => {
   }
 }
 
+const deleteFavorite = async (id) => {
+  try {
+    console.log(id)
+    const response = await fetch(`${API_URL}/delete/favorite/${id}`, {
+      method: "DELETE",
+      credentials: 'include',
+    })
+    const data = await response.json()
+    return data
+  } catch (err) {
+    console.log(err)
+  }
+}
+
 export default {
   createFavorite,
   getFavorites,
+  deleteFavorite,
 }

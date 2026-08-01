@@ -5,6 +5,7 @@ import EditPreferences from './EditPreferences.jsx'
 import preferenceApi from '../services/preferenceApi.js'
 import favoritesApi from '../services/favoritesApi.js'
 import api from "../services/api.jsx"
+import ProfileIngrCard from '../components/ProfileIngrCard.jsx'
 
 const Profile = ({ user }) => {
   const [editBox, setEditBox] = useState(false)
@@ -18,6 +19,16 @@ const Profile = ({ user }) => {
     } else if (editBox === true) {
       setEditBox(false)
     }
+  }
+
+  const handleRefresh = (id) => {
+    setFavorites(prev =>
+      prev.filter(favorite => favorite.recipe_id !== id)
+    )
+    setRecipes(prev =>
+      prev.filter(recipe => recipe.id !== id)
+    )
+    console.log('refreshing')
   }
 
   useEffect(() => {
@@ -34,7 +45,7 @@ const Profile = ({ user }) => {
       const recipeData = await Promise.all(recipePromises)
 
       setRecipes(recipeData)
-      console.log(recipeData)
+      // console.log(recipeData)
     }
     
     fetchData()
@@ -80,13 +91,14 @@ const Profile = ({ user }) => {
       <p style={styles.favTitle}>Favorite Recipes</p>
       <div style={styles.favBox}>
         {recipes.map((r) => (
-          <Card
+          <ProfileIngrCard
             key={r.id}
             id={r.id}
             title={r.title}
             image_url={r.image_url}
             avg_rating={r.avg_rating}
-          ></Card>
+            refresh={handleRefresh}
+          ></ProfileIngrCard>
         ))}
 
         {/* <Card></Card> */}
