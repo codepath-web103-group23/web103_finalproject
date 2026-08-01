@@ -11,7 +11,7 @@ function Card ({id, title, stars, image_url, avg_rating}) {
 
   return (
     <div style={styles.container}>
-      <Link to={`recipe/${id}`}>
+      <Link to={`/recipe/${id}`}>
         <img src={image_url} style={styles.img} />
       </Link>
       <h1 style={styles.title}>{title}</h1>
