@@ -25,7 +25,11 @@ const EditPreferences = ({ toggle }) => {
   }
 
   useEffect(() => {
-    fetchPreferences()
+    const load = async () => {
+      const data = await preferenceApi.getPreferences()
+      setPreferences(data)
+    }
+    load()
   }, [])
 
   const createPreference = async (event) => {

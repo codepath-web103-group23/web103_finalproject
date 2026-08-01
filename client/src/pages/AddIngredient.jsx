@@ -7,7 +7,9 @@ const AddIngredient = () => {
     name: '',
     category: '',
     calories: '',
-    dietary_tags: ''
+    dietary_tags: '',
+    quantity: '',
+    unit: ''
   });
 
   const categories = [
@@ -41,14 +43,7 @@ const AddIngredient = () => {
   const addIngredient = (event) => {
     event.preventDefault()
 
-    const options = {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(ingredient)
-    }
-    api.addIngredient(options)
+    api.addToKitchen(ingredient)
   }
 
   return (
@@ -97,14 +92,40 @@ const AddIngredient = () => {
           />
           <br />
           <label htmlFor="dietary_tag">
-            Nutritional / Dietary Info:    
+            Nutritional / Dietary Info:
           </label>
-          <textarea 
+          <textarea
             id='dietary_tags'
             name='dietary_tags'
             value={ingredient.dietary_tags}
             onChange={handleChange}
             style={styles.textInput}
+          />
+          <br />
+          <label htmlFor="quantity">
+            Quantity:
+          </label>
+          <input
+            id='quantity'
+            name='quantity'
+            type="number"
+            min="0"
+            value={ingredient.quantity}
+            onChange={handleChange}
+            style={styles.input}
+          />
+          <br />
+          <label htmlFor="unit">
+            Unit:
+          </label>
+          <input
+            id='unit'
+            name='unit'
+            type="text"
+            placeholder="e.g. lbs, oz, cups"
+            value={ingredient.unit}
+            onChange={handleChange}
+            style={styles.input}
           />
           <div style={styles.btnBox}>
             <button 
