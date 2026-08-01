@@ -8,6 +8,7 @@ import EditIngredient from './pages/EditIngredient.jsx'
 import Login from './pages/Login.jsx'
 import Profile from './pages/Profile.jsx'
 import EditPreferences from './pages/EditPreferences.jsx'
+import Recipe from './pages/Recipe.jsx'
 
 function App() {
   const [loggedIn, setLoggedIn] = useState(false)
@@ -109,7 +110,13 @@ function App() {
       element: user && user.id
       ? <EditPreferences user={user}></EditPreferences>
       : <Login></Login>
-    }
+    },
+    {
+      path: '/recipe/:id',
+      element: user && user.id
+      ? <Recipe></Recipe>
+      : <Login></Login>
+    },
   ])
 
 
