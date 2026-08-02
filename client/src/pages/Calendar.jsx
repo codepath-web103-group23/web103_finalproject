@@ -15,21 +15,19 @@ const Calendar = () => {
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({ recipe_id: '', meal_type: mealTypes[0] })
 
-  useEffect(() => {
-    const load = async () => {
-      const recipeData = await api.getRecipes()
-      setRecipes(recipeData || [])
-
-      const mealData = await scheduledMealsApi.getScheduledMeals()
-      setMeals(Array.isArray(mealData) ? mealData : [])
-    }
-    load()
-  }, [])
-
   const refreshMeals = async () => {
     const mealData = await scheduledMealsApi.getScheduledMeals()
     setMeals(Array.isArray(mealData) ? mealData : [])
   }
+
+  useEffect(() => {
+    const load = async () => {
+      const recipeData = await api.getRecipes()
+      setRecipes(recipeData || [])
+      refreshMeals()
+    }
+    load()
+  }, [])
 
   const shiftDay = (amount) => {
     setSelectedDate((prev) => {

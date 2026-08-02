@@ -1,24 +1,18 @@
 import { useState, useEffect } from 'react'
 import api from '../services/api.jsx'
 
-const API_URL = "http://localhost:3000/api"
-
 const Admin = () => {
   const [recipes, setRecipes] = useState([])
   const [form, setForm] = useState({ title: '', description: '', instructions: '', image_url: '' })
-
-  useEffect(() => {
-    const load = async () => {
-      const data = await api.getRecipes()
-      setRecipes(data || [])
-    }
-    load()
-  }, [])
 
   const refreshRecipes = async () => {
     const data = await api.getRecipes()
     setRecipes(data || [])
   }
+
+  useEffect(() => {
+    refreshRecipes()
+  }, [])
 
   const handleChange = (event) => {
     const { name, value } = event.target
@@ -27,21 +21,13 @@ const Admin = () => {
 
   const handleCreate = async (event) => {
     event.preventDefault()
-    await fetch(`${API_URL}/create/recipe`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify(form)
-    })
+    await api.createRecipe(form)
     setForm({ title: '', description: '', instructions: '', image_url: '' })
     refreshRecipes()
   }
 
   const handleDelete = async (id) => {
-    await fetch(`${API_URL}/delete/recipe/${id}`, {
-      method: 'DELETE',
-      credentials: 'include'
-    })
+    await api.deleteRecipe(id)
     setRecipes((prev) => prev.filter((r) => r.id !== id))
   }
 

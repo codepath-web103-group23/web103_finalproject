@@ -65,8 +65,9 @@ const addToKitchen = async (ingredient) => {
       credentials: 'include',
       body: JSON.stringify(ingredient)
     })
+    const data = await response.json()
     window.location = '/kitchen'
-    return await response.json()
+    return data
   } catch (err) {
     console.error(err)
   }
@@ -104,6 +105,34 @@ const getRecipe = async (id) => {
   }
 }
 
+const createRecipe = async (recipe) => {
+  try {
+    const response = await fetch(`${API_URL}/create/recipe`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(recipe)
+    })
+    const data = await response.json()
+    return data
+  } catch (err) {
+    console.log(err)
+  }
+}
+
+const deleteRecipe = async (id) => {
+  try {
+    const response = await fetch(`${API_URL}/delete/recipe/${id}`, {
+      method: 'DELETE',
+      credentials: 'include'
+    })
+    const data = await response.json()
+    return data
+  } catch (err) {
+    console.log(err)
+  }
+}
+
 export default {
   addIngredient,
   getIngredients,
@@ -116,5 +145,7 @@ export default {
   removeFromKitchen,
 
   getRecipes,
-  getRecipe
+  getRecipe,
+  createRecipe,
+  deleteRecipe
 }

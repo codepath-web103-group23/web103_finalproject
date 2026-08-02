@@ -1,5 +1,5 @@
 import express from 'express'
-import './db/dbpool.js'
+import { pool } from './db/dbpool.js'
 import cors from 'cors'
 import IngredientsRoutes from './routes/ingredientsRoutes.js'
 import RecipeRoutes from './routes/recipeRoutes.js'
@@ -40,10 +40,15 @@ app.use(passport.initialize())
 app.use(passport.session())
 passport.use(GitHub)
 passport.serializeUser((user,done) => {
-  done(null, user)
+  done(null, user.id)
 })
-passport.deserializeUser((user, done) => {
-  done(null, user)
+passport.deserializeUser(async (id, done) => {
+  try {
+    const result = await pool.query(`SELECT * FROM users WHERE id=$1`, [id])
+    done(null, result.rows[0])
+  } catch (err) {
+    done(err)
+  }
 })
 
 // routes

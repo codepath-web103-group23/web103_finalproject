@@ -136,9 +136,9 @@ function App() {
     <div>
       {loggedIn && !isLoginPage && <Nav user={user}></Nav>}
       {!loggedIn && !isLoginPage && (
-        <div style={guestBarStyle}>
+        <div style={styles.guestBar}>
           <span style={{ fontWeight: 700 }}>EatRite</span>
-          <Link to="/login" style={guestLinkStyle}>Log in</Link>
+          <Link to="/login" style={styles.guestLink}>Log in</Link>
         </div>
       )}
       {routes}
@@ -148,23 +148,24 @@ function App() {
 
 export default App
 
-const guestBarStyle = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  border: 'solid black',
-  borderWidth: '2px',
-  height: '60px',
-  padding: '0 20px',
-  marginBottom: '5px',
-  fontSize: '20px',
-}
-
-const guestLinkStyle = {
-  textDecoration: 'none',
-  color: 'black',
-  border: 'solid black',
-  borderWidth: '1px',
-  borderRadius: '5px',
-  padding: '8px 16px',
+const styles = {
+  guestBar: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    border: 'solid black',
+    borderWidth: '2px',
+    height: '60px',
+    padding: '0 20px',
+    marginBottom: '5px',
+    fontSize: '20px',
+  },
+  guestLink: {
+    textDecoration: 'none',
+    color: 'black',
+    border: 'solid black',
+    borderWidth: '1px',
+    borderRadius: '5px',
+    padding: '8px 16px',
+  },
 }
