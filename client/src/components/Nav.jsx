@@ -38,6 +38,7 @@ function Nav ({ user }) {
         <Link to="/home" style={styles.btn}><strong>Home</strong></Link>
         <Link to="/kitchen" style={styles.btn}><strong>My Kitchen</strong></Link>
         <Link to="/calendar" style={styles.btn}><strong>Calendar</strong></Link>
+        {user.is_admin && <Link to="/admin" style={styles.btn}><strong>Admin</strong></Link>}
         {/* <Link to="/profile" style={styles.btn}><strong>Profile</strong></Link> */}
         <div 
           ref={menuRef}
