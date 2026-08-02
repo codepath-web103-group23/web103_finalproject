@@ -1,8 +1,30 @@
+// <<<<<<< HEAD
+// import { Link } from 'react-router-dom'
+//
+// function Card ({id, title, image_url, avg_rating, isFavorited, onToggle}) {
+// =======
+// import { Link, useNavigate } from 'react-router-dom'
+// import heart from '../assets/heart.png'
+// import favoritesApi from '../services/favoritesApi.js'
+//
+// function Card ({id, title, stars, image_url, avg_rating, loggedIn}) {
+//   const navigate = useNavigate()
+//
+//   const createFavorite = (recipe_id) => {
+//     if (!loggedIn) {
+//       navigate('/login')
+//       return
+//     }
+//     favoritesApi.createFavorite(recipe_id)
+//   }
+// >>>>>>> origin/main
+
+
 import { Link, useNavigate } from 'react-router-dom'
 import heart from '../assets/heart.png'
 import favoritesApi from '../services/favoritesApi.js'
-
-function Card ({id, title, stars, image_url, avg_rating, loggedIn}) {
+ 
+function Card ({id, title, stars, image_url, avg_rating, loggedIn, isFavorited, onToggle}) {
   const navigate = useNavigate()
 
   const createFavorite = (recipe_id) => {
@@ -22,12 +44,23 @@ function Card ({id, title, stars, image_url, avg_rating, loggedIn}) {
       <div style={styles.interBox}>
         {/* <img style={styles.starImage} src={star_img} /> */}
         {/* <button>{heart}</button> */}
-        <text>{avg_rating} stars</text>
-        <button 
-          onClick={() => createFavorite(id)}
+        <span>{avg_rating} stars</span>
+        <button
+          onClick={() => onToggle(id, isFavorited)}
           style={styles.button}
+          aria-pressed={isFavorited}
+          aria-label={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
         >
-          <img src={heart} alt="Favorite" style={styles.heart} />
+          <svg
+            viewBox="0 0 24 24"
+            style={styles.heart}
+            fill={isFavorited ? '#d92d3c' : 'none'}
+            stroke={isFavorited ? '#d92d3c' : '#888888'}
+            strokeWidth="2"
+            strokeLinejoin="round"
+          >
+            <path d="M12 20.5s-7.5-4.7-7.5-10A4.2 4.2 0 0 1 12 7.6a4.2 4.2 0 0 1 7.5 2.9c0 5.3-7.5 10-7.5 10z" />
+          </svg>
         </button>
       </div>
       {/* <Link to={`/recipe/${id}`} style={styles.btn}>Recipe</Link> */}
@@ -94,8 +127,15 @@ const styles = {
     fontSize: '20px',
   },
   heart: {
-    width: "20px",
-    height: "20px",
+    width: "24px",
+    height: "24px",
     display: "block",
+  },
+  button: {
+    background: 'none',
+    border: 'none',
+    padding: '4px',
+    cursor: 'pointer',
+    lineHeight: 0,
   },
 }
