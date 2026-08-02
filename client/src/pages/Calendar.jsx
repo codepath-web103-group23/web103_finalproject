@@ -1,15 +1,19 @@
 import { useState, useEffect } from 'react'
 import api from '../services/api.jsx'
 import scheduledMealsApi from '../services/scheduledMealsApi.js'
+import leftC from '../assets/left-caret.png'
+import rightC from '../assets/right-caret.png'
 
 const mealTypes = ['breakfast', 'lunch', 'dinner', 'snack']
 
-const todayStr = () => new Date().toISOString().slice(0, 10)
+const toDateStr = (date) => date.toISOString().slice(0, 10)
 
 const Calendar = () => {
+  const [selectedDate, setSelectedDate] = useState(new Date())
   const [recipes, setRecipes] = useState([])
   const [meals, setMeals] = useState([])
-  const [form, setForm] = useState({ recipe_id: '', date: todayStr(), meal_type: mealTypes[0] })
+  const [showForm, setShowForm] = useState(false)
+  const [form, setForm] = useState({ recipe_id: '', meal_type: mealTypes[0] })
 
   useEffect(() => {
     const load = async () => {
@@ -27,6 +31,29 @@ const Calendar = () => {
     setMeals(Array.isArray(mealData) ? mealData : [])
   }
 
+  const shiftDay = (amount) => {
+    setSelectedDate((prev) => {
+      const next = new Date(prev)
+      next.setDate(next.getDate() + amount)
+      return next
+    })
+  }
+
+  const year = selectedDate.getFullYear()
+  const month = selectedDate.getMonth()
+  const daysInMonth = new Date(year, month + 1, 0).getDate()
+  const firstWeekday = (new Date(year, month, 1).getDay() + 6) % 7 // 0 = Monday
+
+  const mealsByDate = meals.reduce((acc, m) => {
+    const key = m.date.slice(0, 10)
+    acc[key] = acc[key] || []
+    acc[key].push(m)
+    return acc
+  }, {})
+
+  const selectedDateStr = toDateStr(selectedDate)
+  const selectedDayMeals = mealsByDate[selectedDateStr] || []
+
   const handleChange = (event) => {
     const { name, value } = event.target
     setForm((prev) => ({ ...prev, [name]: value }))
@@ -35,7 +62,9 @@ const Calendar = () => {
   const handleSchedule = async (event) => {
     event.preventDefault()
     if (!form.recipe_id) return
-    await scheduledMealsApi.createScheduledMeal(form)
+    await scheduledMealsApi.createScheduledMeal({ ...form, date: selectedDateStr })
+    setShowForm(false)
+    setForm({ recipe_id: '', meal_type: mealTypes[0] })
     refreshMeals()
   }
 
@@ -44,48 +73,90 @@ const Calendar = () => {
     setMeals((prev) => prev.filter((m) => m.id !== id))
   }
 
-  const today = todayStr()
-  const upcoming = meals.filter((m) => m.date.slice(0, 10) >= today)
-  const history = meals.filter((m) => m.date.slice(0, 10) < today)
-
   return (
-    <div>
-      <h1 style={styles.title}>Meal Calendar</h1>
+    <div style={styles.body}>
 
-      <form style={styles.form} onSubmit={handleSchedule}>
-        <select name="recipe_id" value={form.recipe_id} onChange={handleChange} style={styles.input}>
-          <option value="">Select a recipe</option>
-          {recipes.map((r) => (
-            <option key={r.id} value={r.id}>{r.title}</option>
-          ))}
-        </select>
-        <input type="date" name="date" value={form.date} onChange={handleChange} style={styles.input} />
-        <select name="meal_type" value={form.meal_type} onChange={handleChange} style={styles.input}>
-          {mealTypes.map((t) => (
-            <option key={t} value={t}>{t}</option>
-          ))}
-        </select>
-        <button type="submit" style={styles.btn}>Schedule</button>
-      </form>
+      <div style={styles.topBox}>
+        <h1 style={styles.title}>Meal Calendar</h1>
+        <div>
+          <div style={styles.setDateBox}>
+            <img
+              onClick={() => shiftDay(-1)}
+              src={leftC}
+              style={styles.caret}
+            />
+            <p style={styles.dowState}>{selectedDate.toLocaleString('default', { month: 'short' })} {selectedDate.getDate()}</p>
+            <img
+              onClick={() => shiftDay(1)}
+              src={rightC}
+              style={styles.caret} />
+          </div>
+          <button style={styles.scheduleBtn} onClick={() => setShowForm((prev) => !prev)}>+Schedule Meal</button>
+        </div>
 
-      <h2 style={styles.sectionTitle}>Upcoming</h2>
-      <ul style={styles.list}>
-        {upcoming.map((m) => (
-          <li key={m.id} style={styles.item}>
-            {m.date.slice(0, 10)} — {m.meal_type} — {m.title}
-            <button style={styles.deleteBtn} onClick={() => handleDelete(m.id)}>Remove</button>
-          </li>
+      </div>
+
+      {showForm && (
+        <form style={styles.form} onSubmit={handleSchedule}>
+          <select name="recipe_id" value={form.recipe_id} onChange={handleChange} style={styles.input}>
+            <option value="">Select a recipe</option>
+            {recipes.map((r) => (
+              <option key={r.id} value={r.id}>{r.title}</option>
+            ))}
+          </select>
+          <select name="meal_type" value={form.meal_type} onChange={handleChange} style={styles.input}>
+            {mealTypes.map((t) => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
+          <button type="submit" style={styles.scheduleBtn}>Save</button>
+        </form>
+      )}
+
+      <div style={styles.grid}>
+        <div style={styles.dow}>Monday</div>
+        <div style={styles.dow}>Tuesday</div>
+        <div style={styles.dow}>Wednesday</div>
+        <div style={styles.dow}>Thursday</div>
+        <div style={styles.dow}>Friday</div>
+        <div style={styles.dow}>Saturday</div>
+        <div style={styles.dow}>Sunday</div>
+
+        {Array.from({ length: firstWeekday }, (_, i) => (
+          <div key={`blank-${i}`} style={styles.day}></div>
         ))}
-      </ul>
 
-      <h2 style={styles.sectionTitle}>History</h2>
-      <ul style={styles.list}>
-        {history.map((m) => (
-          <li key={m.id} style={styles.item}>
-            {m.date.slice(0, 10)} — {m.meal_type} — {m.title}
-          </li>
-        ))}
-      </ul>
+        {Array.from({ length: daysInMonth }, (_, i) => {
+          const dayNum = i + 1
+          const cellDate = new Date(year, month, dayNum)
+          const cellDateStr = toDateStr(cellDate)
+          const isSelected = cellDateStr === selectedDateStr
+          const dayMeals = mealsByDate[cellDateStr] || []
+          return (
+            <div
+              key={dayNum}
+              style={{ ...styles.day, ...(isSelected ? styles.daySelected : {}) }}
+              onClick={() => setSelectedDate(cellDate)}
+            >
+              <span>{dayNum}</span>
+              {dayMeals.length > 0 && <span style={styles.mealDot}>{dayMeals.length} meal{dayMeals.length > 1 ? 's' : ''}</span>}
+            </div>
+          )
+        })}
+      </div>
+
+      <div style={styles.selectedBox}>
+        <h2>{selectedDate.toDateString()}</h2>
+        <ul style={styles.list}>
+          {selectedDayMeals.map((m) => (
+            <li key={m.id} style={styles.item}>
+              {m.meal_type} — {m.title}
+              <button style={styles.deleteBtn} onClick={() => handleDelete(m.id)}>Remove</button>
+            </li>
+          ))}
+        </ul>
+      </div>
+
     </div>
   )
 }
@@ -93,34 +164,95 @@ const Calendar = () => {
 export default Calendar
 
 const styles = {
-  title: {
-    marginLeft: '10px',
+  body: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  sectionTitle: {
-    marginLeft: '10px',
-    marginTop: '30px',
+  title: {
+    marginLeft: '30px',
   },
   form: {
     display: 'flex',
     gap: '10px',
     alignItems: 'center',
-    padding: '10px',
+    marginBottom: '10px',
   },
   input: {
     height: '35px',
     borderRadius: '5px',
   },
-  btn: {
+  scheduleBtn: {
     cursor: 'pointer',
-    height: '35px',
+    marginRight: '30px',
+    fontSize: '15px',
+    backgroundColor: '#333333',
+    color: 'white',
     border: 'solid black',
-    borderWidth: '1px',
+    width: '200px',
+    height: '45px',
     borderRadius: '5px',
-    padding: '0 15px',
+    borderWidth: '1px',
+    textDecoration: 'none',
+    margin: '10px',
+  },
+  topBox: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  grid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(7,150px)',
+    marginTop: '20px',
+  },
+  dow: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    border: '1px solid black',
+    borderRadius: '10px',
+    height: '30px',
+  },
+  day: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    border: '1px solid black',
+    borderRadius: '10px',
+    height: '100px',
+    cursor: 'pointer',
+  },
+  daySelected: {
+    backgroundColor: '#dcdcdc',
+  },
+  mealDot: {
+    fontSize: '11px',
+  },
+  dowState: {
+    fontSize: '20px',
+    paddingLeft: '10px',
+  },
+  caret: {
+    height: '20px',
+    cursor: 'pointer',
+  },
+  setDateBox: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 10,
+  },
+  selectedBox: {
+    width: '100%',
+    maxWidth: '800px',
+    marginTop: '20px',
   },
   list: {
     listStyle: 'none',
-    padding: '10px',
+    padding: 0,
   },
   item: {
     display: 'flex',

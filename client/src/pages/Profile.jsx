@@ -21,14 +21,31 @@ const Profile = ({ user }) => {
     }
   }
 
-  const handleRefresh = (id) => {
-    setFavorites(prev =>
-      prev.filter(favorite => favorite.recipe_id !== id)
-    )
-    setRecipes(prev =>
-      prev.filter(recipe => recipe.id !== id)
-    )
-    console.log('refreshing')
+  const handleInsertRefresh = (data) => {
+    setPreferences(prev => [
+      ...prev,
+      data
+    ])
+
+    console.log('insert refreshing')
+  }
+
+  const handleDeleteRefresh = (id, type) => {
+    if (type == 'fav') {
+      setFavorites(prev =>
+        prev.filter(favorite => favorite.recipe_id !== id)
+      )
+      setRecipes(prev =>
+        prev.filter(recipe => recipe.id !== id)
+      )
+      console.log('delete fav refreshing')
+    }
+    if (type == 'pref') {
+      setPreferences(prev =>
+        prev.filter(preference => preference.id !== id)
+      )
+    }
+    console.log('delete refreshing')
   }
 
   useEffect(() => {
@@ -54,7 +71,11 @@ const Profile = ({ user }) => {
   return (
     <div style={styles.profileBox}>
 
-      {editBox && (<EditPreferences toggle={toggle}></EditPreferences>)}
+      {editBox && (<EditPreferences 
+        delRefresh={handleDeleteRefresh} 
+        inRefresh={handleInsertRefresh}
+        toggle={toggle}
+      ></EditPreferences>)}
 
       <div style={styles.info}>
         <img src={user.avatarurl} style={styles.infoImg}/>
@@ -97,7 +118,7 @@ const Profile = ({ user }) => {
             title={r.title}
             image_url={r.image_url}
             avg_rating={r.avg_rating}
-            refresh={handleRefresh}
+            refresh={handleDeleteRefresh}
           ></ProfileIngrCard>
         ))}
 

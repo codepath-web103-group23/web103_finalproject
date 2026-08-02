@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import preferenceApi from '../services/preferenceApi.js'
 import PrefItem from '../components/PrefItem.jsx'
 
-const EditPreferences = ({ toggle }) => {
+const EditPreferences = ({ toggle, delRefresh, inRefresh}) => {
   const [preferences, setPreferences] = useState([]) 
   const [newPref, setNewPref] = useState({ preference: ''})
 
@@ -16,28 +16,32 @@ const EditPreferences = ({ toggle }) => {
         [name]:value,
       }
     })
-
   }
 
-  const fetchPreferences = async () => {
-    const data = await preferenceApi.getPreferences()
-    setPreferences(data)
+  const handleModalDeleteRefresh = (id) => {
+    setPreferences(prev =>
+      prev.filter(preference => preference.id !== id)
+    )
+    console.log('delete modal refreshing')
   }
 
   useEffect(() => {
-    const load = async () => {
+    const fetchPreference = async () => {
       const data = await preferenceApi.getPreferences()
       setPreferences(data)
     }
-    load()
+    fetchPreference()
   }, [])
 
-  const createPreference = async (event) => {
+  const createPreference = (event) => {
     event.preventDefault()
 
-    await preferenceApi.createPreference(newPref)
-    setNewPref({ preference: '' })
-    fetchPreferences()
+    preferenceApi.createPreference(newPref)
+    setPreferences(prev => [
+      ...prev,
+      newPref
+    ])
+    inRefresh(newPref)
   }
 
   return (
@@ -45,7 +49,14 @@ const EditPreferences = ({ toggle }) => {
       <h1 style={styles.title}>Preferences</h1>
       <div style={styles.prefBox}>
         {preferences.map((p) => (
-          <PrefItem key={p.id} id={p.id} preference={p.preference} onChange={handleChange} refresh={fetchPreferences}></PrefItem>
+          <PrefItem
+            key={p.id}
+            id={p.id}
+            preference={p.preference}
+            onChange={handleChange}
+            delRefresh={delRefresh}
+            delModalRefresh={handleModalDeleteRefresh}
+          ></PrefItem>
         ))}
       </div>
       <div style={styles.bottomBox}>
