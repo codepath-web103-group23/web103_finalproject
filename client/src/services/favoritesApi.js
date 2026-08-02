@@ -1,4 +1,5 @@
-const API_URL = "http://localhost:3000/api"
+// const API_URL = "http://localhost:3000/api"
+const API_URL = "https://web103-finalproject-5y81.onrender.com/api"
 
 const createFavorite = async (recipe_id) => {
   try {
