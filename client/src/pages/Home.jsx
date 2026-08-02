@@ -5,18 +5,35 @@ import Search from '../components/SearchBar.jsx'
 import pizzaimage from "../assets/pizza_image.jpg"
 import fourstar from "../assets/fourstar.png"
 import api from "../services/api.jsx"
+import favoritesApi from '../services/favoritesApi.js'
 
-const Home = () => {
+const Home = () => {  
   const [recipes, setRecipes] = useState([])
+  const [favIds, setFavIds] = useState([])
 
   useEffect(() => {
     const loadRecipes = async () => {
       const data = await api.getRecipes()
       console.log("API DATA:", data)
       setRecipes(data)
+
+      const favs = await favoritesApi.getFavorites()
+      setFavIds(favs.map(f => f.recipe_id))
     }
     loadRecipes()
   }, [])
+
+  const toggleFavorite = async (recipeId, isFav) => {
+    setFavIds(prev =>
+      isFav ? prev.filter(x => x !== recipeId) : [...prev, recipeId]
+    )
+
+    if (isFav) {
+      await favoritesApi.deleteFavorite(recipeId)
+    } else {
+      await favoritesApi.createFavorite(recipeId)
+    }
+  }
 
   return (
     <div>
@@ -55,6 +72,8 @@ const Home = () => {
             title={r.title}
             image_url={r.image_url}
             avg_rating={r.avg_rating}
+            isFavorited={favIds.includes(r.id)}
+            onToggle={toggleFavorite}
           ></Card>
         ))}
 
