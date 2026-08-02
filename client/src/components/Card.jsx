@@ -12,6 +12,9 @@ function Card ({id, title, image_url, avg_rating, isFavorited, onToggle}) {
         {/* <img style={styles.starImage} src={star_img} /> */}
         {/* <button>{heart}</button> */}
         <span>{avg_rating} stars</span>
+        <Link to={`/recipe/${id}/instructions`} style={styles.stepsLink}>
+          Directions
+        </Link>
         <button
           onClick={() => onToggle(id, isFavorited)}
           style={styles.button}
@@ -92,6 +95,11 @@ const styles = {
     alignItems: 'center',
     color: 'black',
     fontSize: '20px',
+  },
+  stepsLink: {
+    fontSize: '16px',
+    color: 'black',
+    textDecoration: 'underline',
   },
   heart: {
     width: "24px",

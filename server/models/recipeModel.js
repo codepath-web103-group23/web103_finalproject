@@ -28,6 +28,27 @@ const getRecipe = async (req, res) => {
   return data.rows[0]
 }
 
+const getRecipeIngredients = async (req, res) => {
+  const { id } = req.params
+  const query = `
+    SELECT
+      ri.id,
+      ri.quantity,
+      ri.unit,
+      i.id AS ingredient_id,
+      i.name,
+      i.category,
+      i.calories,
+      i.dietary_tags
+    FROM recipe_ingredients ri
+    JOIN ingredients i ON i.id = ri.ingredient_id
+    WHERE ri.recipe_id=$1
+    ORDER BY i.name
+  `
+  const data = await pool.query(query, [id])
+  return data.rows
+}
+
 const updateRecipe = async (req, res) => {
   const { id } = req.params
   const data = req.body
@@ -54,6 +75,7 @@ export default {
   createRecipe,
   getRecipes,
   getRecipe,
+  getRecipeIngredients,
   updateRecipe,
   deleteRecipe
 }

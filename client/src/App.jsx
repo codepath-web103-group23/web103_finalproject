@@ -9,6 +9,7 @@ import Login from './pages/Login.jsx'
 import Profile from './pages/Profile.jsx'
 import EditPreferences from './pages/EditPreferences.jsx'
 import Recipe from './pages/Recipe.jsx'
+import Instructions from './pages/Instructions.jsx'
 
 function App() {
   const [loggedIn, setLoggedIn] = useState(false)
@@ -115,6 +116,12 @@ function App() {
       path: '/recipe/:id',
       element: user && user.id
       ? <Recipe></Recipe>
+      : <Login></Login>
+    },
+    {
+      path: '/recipe/:id/instructions',
+      element: user && user.id
+      ? <Instructions></Instructions>
       : <Login></Login>
     },
   ])
