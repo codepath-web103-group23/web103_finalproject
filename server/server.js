@@ -14,7 +14,7 @@ import { fileURLToPath } from 'url'
 // authentication libraries
 import passport from 'passport'
 import session from 'express-session'
-import { github } from './config/auth.js'
+import { GitHub } from './config/auth.js'
 import authroutes from './routes/auth.js'
 
 const app = express();
@@ -38,16 +38,16 @@ app.use(cors({
 app.use(session({
   secret: 'codepath',
   resave: false,
-  saveuninitialized: false
+  saveUninitialized: false
 }))
 
 app.use(passport.initialize())
 app.use(passport.session())
-passport.use(github)
-passport.serializeuser((user,done) => {
+passport.use(GitHub)
+passport.serializeUser((user,done) => {
   done(null, user)
 })
-passport.deserializeuser((user, done) => {
+passport.deserializeUser((user, done) => {
   done(null, user)
 })
 
@@ -68,7 +68,7 @@ app.use('/auth', authroutes)
 
 app.use(express.static(path.join(__dirname, 'public')))
 
-app.get('*', (req, res) => {
+app.get('*splat', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'))
 })
 
