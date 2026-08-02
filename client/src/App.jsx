@@ -9,6 +9,8 @@ import Login from './pages/Login.jsx'
 import Profile from './pages/Profile.jsx'
 import EditPreferences from './pages/EditPreferences.jsx'
 import Recipe from './pages/Recipe.jsx'
+import Calendar from './pages/Calendar.jsx'
+import Admin from './pages/Admin.jsx'
 
 function App() {
   const [loggedIn, setLoggedIn] = useState(false)
@@ -67,15 +69,11 @@ function App() {
   let routes = useRoutes([
     {
       path: '/',
-      element: user && user.id 
-        ? <Home user={user} /> 
-        : <Login api_url={API_URL} />
+      element: <Home user={user} />
     },
     {
       path: '/home',
-      element: user && user.id 
-        ? <Home user={user} /> 
-        : <Login api_url={API_URL} />
+      element: <Home user={user} />
     },
     {
       path: '/kitchen',
@@ -117,6 +115,18 @@ function App() {
       ? <Recipe></Recipe>
       : <Login></Login>
     },
+    {
+      path: '/calendar',
+      element: user && user.id
+      ? <Calendar></Calendar>
+      : <Login></Login>
+    },
+    {
+      path: '/admin',
+      element: user && user.is_admin
+      ? <Admin></Admin>
+      : <Login></Login>
+    },
   ])
 
 
@@ -125,10 +135,36 @@ function App() {
   return (
     <div>
       {loggedIn && !isLoginPage && <Nav user={user}></Nav>}
-      {/* <Nav></Nav> */}
+      {!loggedIn && !isLoginPage && (
+        <div style={guestBarStyle}>
+          <span style={{ fontWeight: 700 }}>EatRite</span>
+          <Link to="/login" style={guestLinkStyle}>Log in</Link>
+        </div>
+      )}
       {routes}
     </div>
   )
 }
 
 export default App
+
+const guestBarStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  border: 'solid black',
+  borderWidth: '2px',
+  height: '60px',
+  padding: '0 20px',
+  marginBottom: '5px',
+  fontSize: '20px',
+}
+
+const guestLinkStyle = {
+  textDecoration: 'none',
+  color: 'black',
+  border: 'solid black',
+  borderWidth: '1px',
+  borderRadius: '5px',
+  padding: '8px 16px',
+}

@@ -13,7 +13,7 @@ const Kitchen = () => {
     //   zone: "Refrigerator",
     //   quantity: 12,
     // },
-    // {
+    // { 
     //   name: "Rice",
     //   zone: "Pantry",
     //   quantity: "5 lbs",
@@ -32,16 +32,19 @@ const Kitchen = () => {
   }
 
   useEffect(() => {
-    const loadIngredients = async () => {
-      const data  = await api.getIngredients();
+    const load = async () => {
+      const data = await api.getKitchen();
       setIngredients(data)
     }
-
-    loadIngredients()
-    console.log(ingredients)
+    load()
   }, [])
 
-  
+  const handleRemove = async (ingredientId) => {
+    await api.removeFromKitchen(ingredientId)
+    setIngredients((prev) => prev.filter((i) => i.ingredient_id !== ingredientId))
+  }
+
+
 
   return (
     <div>
@@ -72,11 +75,12 @@ const Kitchen = () => {
         <thead>
           <tr>
             <th style={styles.header}>Ingredient Name</th>
-            <th style={styles.header}>Storage Zone</th>
             <th style={styles.header}>Category</th>
+            <th style={styles.header}>Calories</th>
             <th style={styles.header}>Dietary facts</th>
+            <th style={styles.header}>Quantity</th>
             <th style={styles.header}>Edit</th>
-            {/* <th style={styles.header}>Quantity</th> */}
+            <th style={styles.header}>Remove</th>
           </tr>
         </thead>
 
@@ -87,13 +91,19 @@ const Kitchen = () => {
               <td style={styles.cell}>{ingredient.category}</td>
               <td style={styles.cell}>{ingredient.calories}</td>
               <td style={styles.cell}>{ingredient.dietary_tags}</td>
+              <td style={styles.cell}>{ingredient.quantity ? `${ingredient.quantity} ${ingredient.unit || ''}` : ''}</td>
               <td style={styles.cell}>
-                <button 
+                <button
                   style={styles.btn}
-                  onClick={() => handleEdit(ingredient.id)}
+                  onClick={() => handleEdit(ingredient.ingredient_id)}
                 >Edit</button>
               </td>
-              <td>{ingredient.quantity}</td>
+              <td style={styles.cell}>
+                <button
+                  style={styles.btn}
+                  onClick={() => handleRemove(ingredient.ingredient_id)}
+                >Remove</button>
+              </td>
             </tr>
           ))}
         </tbody>
