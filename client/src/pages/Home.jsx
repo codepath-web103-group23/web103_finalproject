@@ -72,6 +72,7 @@ const Home = ({ user }) => {
     } else {
       await favoritesApi.createFavorite(recipeId)
     }
+  }
   
 
   const sortedRecipes = [...recipes].sort((a, b) => {
@@ -131,13 +132,6 @@ const Home = ({ user }) => {
             title={r.title}
             image_url={r.image_url}
             avg_rating={r.avg_rating}
-{/* <<<<<<< HEAD */}
-{/*             isFavorited={favIds.includes(r.id)} */}
-{/*             onToggle={toggleFavorite} */}
-{/* ======= */}
-{/*             loggedIn={!!user?.id} */}
-{/* >>>>>>> origin/main */}
-
             // merge pt3
             isFavorited={favIds.includes(r.id)}
             onToggle={toggleFavorite}

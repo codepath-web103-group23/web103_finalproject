@@ -18,10 +18,11 @@
 //     favoritesApi.createFavorite(recipe_id)
 //   }
 // >>>>>>> origin/main
-//
-// import { Link, useNavigate } from 'react-router-dom'
-// import heart from '../assets/heart.png'
-// import favoritesApi from '../services/favoritesApi.js'
+
+
+import { Link, useNavigate } from 'react-router-dom'
+import heart from '../assets/heart.png'
+import favoritesApi from '../services/favoritesApi.js'
  
 function Card ({id, title, stars, image_url, avg_rating, loggedIn, isFavorited, onToggle}) {
   const navigate = useNavigate()
