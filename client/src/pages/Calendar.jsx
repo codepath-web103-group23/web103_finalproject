@@ -72,6 +72,14 @@ const Calendar = () => {
     await scheduledMealsApi.deleteScheduledMeal(id)
     setMeals((prev) => prev.filter((m) => m.id !== id))
   }
+  
+  const handleMealDay = (cellDate, recipe_id) => {
+    setSelectedDate(cellDate)
+    if (recipe_id) {
+      window.location.href = `/recipe/${recipe_id}`
+      console.log(recipe_id)
+    }
+  }
 
   return (
     <div style={styles.body}>
@@ -136,7 +144,7 @@ const Calendar = () => {
             <div
               key={dayNum}
               style={{ ...styles.day, ...(isSelected ? styles.daySelected : {}) }}
-              onClick={() => setSelectedDate(cellDate)}
+              onClick={() => handleMealDay(cellDate, dayMeals[0]?.recipe_id)}
             >
               <span>{dayNum}</span>
               {dayMeals.length > 0 && <span style={styles.mealDot}>{dayMeals.length} meal{dayMeals.length > 1 ? 's' : ''}</span>}
