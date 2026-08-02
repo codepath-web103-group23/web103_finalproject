@@ -29,7 +29,6 @@ const EditPreferences = ({ toggle, delRefresh, inRefresh}) => {
     const fetchPreference = async () => {
       const data = await preferenceApi.getPreferences()
       setPreferences(data)
-      // console.log(data)
     }
     fetchPreference()
   }, [])
@@ -40,7 +39,7 @@ const EditPreferences = ({ toggle, delRefresh, inRefresh}) => {
     preferenceApi.createPreference(newPref)
     setPreferences(prev => [
       ...prev,
-      newPref 
+      newPref
     ])
     inRefresh(newPref)
   }
@@ -50,10 +49,11 @@ const EditPreferences = ({ toggle, delRefresh, inRefresh}) => {
       <h1 style={styles.title}>Preferences</h1>
       <div style={styles.prefBox}>
         {preferences.map((p) => (
-          <PrefItem 
-            id={p.id} 
-            preference={p.preference} 
-            onChange={handleChange} 
+          <PrefItem
+            key={p.id}
+            id={p.id}
+            preference={p.preference}
+            onChange={handleChange}
             delRefresh={delRefresh}
             delModalRefresh={handleModalDeleteRefresh}
           ></PrefItem>

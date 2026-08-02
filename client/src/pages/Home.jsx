@@ -6,8 +6,9 @@ import pizzaimage from "../assets/pizza_image.jpg"
 import fourstar from "../assets/fourstar.png"
 import api from "../services/api.jsx"
 
-const Home = () => {
+const Home = ({ user }) => {
   const [recipes, setRecipes] = useState([])
+  const [sortBy, setSortBy] = useState('none')
 
   useEffect(() => {
     const loadRecipes = async () => {
@@ -18,28 +19,48 @@ const Home = () => {
     loadRecipes()
   }, [])
 
+  const sortedRecipes = [...recipes].sort((a, b) => {
+    if (sortBy === 'rating') {
+      return (b.avg_rating ?? 0) - (a.avg_rating ?? 0)
+    }
+    if (sortBy === 'newest') {
+      return b.id - a.id
+    }
+    if (sortBy === 'oldest') {
+      return a.id - b.id
+    }
+    return 0
+  })
+
   return (
     <div>
       <div style={styles.titleBox}>
         <h1 style={styles.filterTitle}>Recipe Results</ h1>
       </div>
       <div style={styles.filterBox}>
-        
+
         <div style={styles.dropdownBox}>
           <div style={styles.dropdown}>
             <label style={styles.label}>Sort by Rating:</label>
-            <select style={styles.select}>
-              <option>1 star</option>
-              <option>2 star</option>
-              <option>3 star</option>
-              <option>4 star</option>
+            <select
+              style={styles.select}
+              value={sortBy === 'rating' ? 'rating' : ''}
+              onChange={(e) => setSortBy(e.target.value || 'none')}
+            >
+              <option value="">--</option>
+              <option value="rating">Highest rated</option>
             </select>
           </div>
           <div style={styles.dropdown}>
             <label style={styles.label}>Sort by Date:</label>
-            <select style={styles.select}>
-              <option>Newest</option>
-              <option>Oldest</option>
+            <select
+              style={styles.select}
+              value={sortBy === 'newest' || sortBy === 'oldest' ? sortBy : ''}
+              onChange={(e) => setSortBy(e.target.value || 'none')}
+            >
+              <option value="">--</option>
+              <option value="newest">Newest</option>
+              <option value="oldest">Oldest</option>
             </select>
           </div>
         </div>
@@ -48,13 +69,14 @@ const Home = () => {
 
       </div>
       <div style={styles.feed}>
-        {recipes.map((r) => (
+        {sortedRecipes.map((r) => (
           <Card
             key={r.id}
             id={r.id}
             title={r.title}
             image_url={r.image_url}
             avg_rating={r.avg_rating}
+            loggedIn={!!user?.id}
           ></Card>
         ))}
 

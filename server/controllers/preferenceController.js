@@ -20,7 +20,7 @@ const getPreferences = async (req, res) => {
 
 const getPreference = async (req, res) => {
   try {
-    const response = await model.getPreferencec(req, res) 
+    const response = await model.getPreference(req, res)
     res.status(200).json(response)
   } catch (err) {
     res.status(500).json({ message: err.message })
