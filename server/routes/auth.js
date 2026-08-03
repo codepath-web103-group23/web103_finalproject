@@ -45,10 +45,10 @@ router.get(
 router.get(
   '/github/callback',
   passport.authenticate('github', {
-    failureRedirect: 'http://localhost:5173/',
+    failureRedirect: `${process.env.CLIENT_URL}/`,
   }),
   (req, res) => {
-    res.redirect('http://localhost:5173/home')
+    res.redirect(`${process.env.CLIENT_URL}/home`)
   }
 )
 

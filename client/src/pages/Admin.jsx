@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import api from '../services/api.jsx'
 
-const API_URL = "http://localhost:3000/api"
+const API_URL = `${import.meta.env.VITE_API_URL}/api`
 
 const Admin = () => {
   const [recipes, setRecipes] = useState([])

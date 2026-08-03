@@ -1,21 +1,26 @@
 import express from 'express'
 import './db/dbpool.js'
 import cors from 'cors'
-import IngredientsRoutes from './routes/ingredientsRoutes.js'
-import RecipeRoutes from './routes/recipeRoutes.js'
-import UserRoutes from './routes/userRoutes.js'
-import PreferenceRoutes from './routes/preferencesRoutes.js'
-import FavoriteRoutes from './routes/favoritesRoutes.js'
-import KitchenRoutes from './routes/kitchenRoutes.js'
-import ScheduledMealsRoutes from './routes/scheduledMealsRoutes.js'
+import ingredientsroutes from './routes/ingredientsRoutes.js'
+import reciperoutes from './routes/recipeRoutes.js'
+import userroutes from './routes/userRoutes.js'
+import preferenceroutes from './routes/preferencesRoutes.js'
+import favoriteroutes from './routes/favoritesRoutes.js'
+import kitchenroutes from './routes/kitchenRoutes.js'
+import scheduledmealsroutes from './routes/scheduledMealsRoutes.js'
+import path from 'path'
+import { fileURLToPath } from 'url'
 
 // authentication libraries
 import passport from 'passport'
 import session from 'express-session'
 import { GitHub } from './config/auth.js'
-import authRoutes from './routes/auth.js'
+import authroutes from './routes/auth.js'
 
 const app = express();
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 console.log("server setup")
 
@@ -25,8 +30,8 @@ app.use(express.json())
 
 
 app.use(cors({
-  origin: 'http://localhost:5173',
-  methods: 'GET, POST, PUT, DELETE, PATCH',
+  origin: process.env.CLIENT_URL,
+  methods: 'get, post, put, delete, patch',
   credentials: true
 }))
 
@@ -47,21 +52,27 @@ passport.deserializeUser((user, done) => {
 })
 
 // routes
-app.use('/api', IngredientsRoutes)
-app.use('/api', RecipeRoutes)
-app.use('/api', UserRoutes)
-app.use('/api', PreferenceRoutes)
-app.use('/api', FavoriteRoutes)
-app.use('/api', KitchenRoutes)
-app.use('/api', ScheduledMealsRoutes)
+app.use('/api', ingredientsroutes)
+app.use('/api', reciperoutes)
+app.use('/api', userroutes)
+app.use('/api', preferenceroutes)
+app.use('/api', favoriteroutes)
+app.use('/api', kitchenroutes)
+app.use('/api', scheduledmealsroutes)
 
-app.use('/auth', authRoutes)
+app.use('/auth', authroutes)
 
 // app.get('/', function (req, res) {
 //     res.send('hello, world!');
 // });
 
+app.use(express.static(path.join(__dirname, 'public')))
+
+app.get('/{*splat}', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'))
+})
+
 app.listen(3000, function () {
-    console.log('Server started on port 3000');
+    console.log('server started on port 3000');
 });
 
