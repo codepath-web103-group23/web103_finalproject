@@ -48,7 +48,7 @@ router.get(
     failureRedirect: 'https://web103-finalproject-5y81.onrender.com/',
   }),
   (req, res) => {
-    res.redirect('https://your-frontend-url.onrender.com/home')
+    res.redirect('https://web103-finalproject-5y81.onrender.com/home')
   }
 )
 
