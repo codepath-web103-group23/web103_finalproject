@@ -6,7 +6,7 @@ import GitHubStrategy from "passport-github2";
 const options = {
     clientID: process.env.GITHUB_CLIENT_ID,
     clientSecret: process.env.GITHUB_CLIENT_SECRET,
-    callbackURL: 'http://localhost:3000/auth/github/callback'
+    callbackURL: 'https://web103-finalproject-5y81.onrender.com/auth/github/callback'
 }
 
 

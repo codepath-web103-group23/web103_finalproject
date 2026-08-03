@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import api from '../services/api.jsx'
 
-// const API_URL = "http://localhost:3000/api"
 const API_URL = "https://web103-finalproject-5y81.onrender.com/api"
 
 const Admin = () => {
