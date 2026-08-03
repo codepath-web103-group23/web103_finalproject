@@ -54,13 +54,13 @@ Backend: Express
 
 [![Demo Video](https://img.youtube.com/vi/x-i2w46ggYo/0.jpg)](https://youtu.be/x-i2w46ggYo)
 
-### User Profile
+### User Profile ✅
 
 - Link to Page to edit Ditary preferences
 - Link to User kitchen Page
 - User Logo
 
-[gif goes here]
+[![Demo Video](https://img.youtube.com/vi/5BZ72l_PJes/0.jpg)](https://youtu.be/5BZ72l_PJes)
 
 ### User Authentication ✅
 
@@ -68,15 +68,29 @@ Backend: Express
 
 [![Demo Video](https://img.youtube.com/vi/mr_CoBDzWKs/0.jpg)](https://youtu.be/mr_CoBDzWKs)
 
-### Meal Calendar
+### Meal Calendar ✅
 
 - Tracks what you ate on what days
 - Can schedule meals
 
-[gif goes here]
+[![Demo Video](https://img.youtube.com/vi/S-ZNiX4YNOQ/0.jpg)](https://youtu.be/S-ZNiX4YNOQ)
 
 ### [ADDITIONAL FEATURES GO HERE - ADD ALL FEATURES HERE IN THE FORMAT ABOVE; you will check these off and add gifs as you complete them]
 
+### Admin ✅
+
+- page to manage recipes
+
+[![Demo Video](https://img.youtube.com/vi/Y2ToLjdQq60/0.jpg)](https://youtu.be/Y2ToLjdQq60)
+
 ## Installation Instructions
 
-[instructions go here]
+### Local
+
+- cd client; npm install; npm run build;
+- cd server; npm install; node server.js;
+
+### Deploy
+- Build: cd client && npm install && npm run build
+- Start: cd server && npm install && node server.js
+
