@@ -1,4 +1,4 @@
-const API_URL = "https://web103-finalproject-5y81.onrender.com"
+const API_URL = import.meta.env.VITE_API_URL
 
 const login = () => {
   console.log('login')

@@ -18,7 +18,7 @@ function App() {
   const location = useLocation()
   const isLoginPage = location.pathname === '/login'
 
-  const API_URL = "https://web103-finalproject-5y81.onrender.com";
+  const API_URL = import.meta.env.VITE_API_URL
 
   const getUser = async () => {
     const response = await fetch(`${API_URL}/auth/login/success`, { credentials: 'include' } )

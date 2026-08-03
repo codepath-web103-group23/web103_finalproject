@@ -30,7 +30,7 @@ app.use(express.json())
 
 
 app.use(cors({
-  origin: 'https://web103-finalproject-5y81.onrender.com',
+  origin: process.env.CLIENT_URL,
   methods: 'get, post, put, delete, patch',
   credentials: true
 }))
