@@ -10,7 +10,7 @@ Khadeja Ahmar,
 Oscar Mochizaki,
 Noah Mckegney
 
-🔗 Link to deployed app:
+🔗 Link to deployed app: https://web103-finalproject-5y81.onrender.com
 
 ## About
 
