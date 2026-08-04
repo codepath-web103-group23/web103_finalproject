@@ -1,15 +1,18 @@
 import React from 'react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Card from '../components/Card.jsx'
 import Search from '../components/SearchBar.jsx'
-import pizzaimage from "../assets/pizza_image.jpg"
-import fourstar from "../assets/fourstar.png"
 import api from "../services/api.jsx"
 import favoritesApi from '../services/favoritesApi.js'
 
 const Home = () => {  
   const [recipes, setRecipes] = useState([])
   const [favIds, setFavIds] = useState([])
+
+  // filter / sort controls
+  const [query, setQuery] = useState("")
+  const [minRating, setMinRating] = useState("all")
+  const [sortOrder, setSortOrder] = useState("newest")
 
   useEffect(() => {
     const loadRecipes = async () => {
@@ -35,37 +38,77 @@ const Home = () => {
     }
   }
 
+  // Derive the visible list from `recipes` + the controls. We never mutate
+  // `recipes` itself, so clearing a filter always brings every recipe back.
+  const visibleRecipes = useMemo(() => {
+    const search = query.trim().toLowerCase()
+
+    const filtered = recipes.filter((r) => {
+      const matchesSearch =
+        search === "" || (r.title ?? "").toLowerCase().includes(search)
+
+      // pg returns NUMERIC columns as strings, so coerce before comparing
+      const matchesRating =
+        minRating === "all" || Number(r.avg_rating ?? 0) >= Number(minRating)
+
+      return matchesSearch && matchesRating
+    })
+
+    // The recipes table has no date column, so `id` (SERIAL) stands in for
+    // insertion order: a higher id was added later.
+    return [...filtered].sort((a, b) =>
+      sortOrder === "newest" ? b.id - a.id : a.id - b.id
+    )
+  }, [recipes, query, minRating, sortOrder])
+
   return (
     <div>
       <div style={styles.titleBox}>
-        <h1 style={styles.filterTitle}>Recipe Results</ h1>
+        <h1 style={styles.filterTitle}>
+          Recipe Results ({visibleRecipes.length})
+        </h1>
       </div>
       <div style={styles.filterBox}>
         
         <div style={styles.dropdownBox}>
           <div style={styles.dropdown}>
-            <label style={styles.label}>Sort by Rating:</label>
-            <select style={styles.select}>
-              <option>1 star</option>
-              <option>2 star</option>
-              <option>3 star</option>
-              <option>4 star</option>
+            <label style={styles.label} htmlFor="rating-filter">Min Rating:</label>
+            <select
+              id="rating-filter"
+              style={styles.select}
+              value={minRating}
+              onChange={(e) => setMinRating(e.target.value)}
+            >
+              <option value="all">All ratings</option>
+              <option value="1">1+ stars</option>
+              <option value="2">2+ stars</option>
+              <option value="3">3+ stars</option>
+              <option value="4">4+ stars</option>
             </select>
           </div>
           <div style={styles.dropdown}>
-            <label style={styles.label}>Sort by Date:</label>
-            <select style={styles.select}>
-              <option>Newest</option>
-              <option>Oldest</option>
+            <label style={styles.label} htmlFor="date-sort">Sort by Added:</label>
+            <select
+              id="date-sort"
+              style={styles.select}
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value)}
+            >
+              <option value="newest">Newest</option>
+              <option value="oldest">Oldest</option>
             </select>
           </div>
         </div>
 
-        <Search></Search>
+        <Search
+          value={query}
+          onChange={setQuery}
+          placeholder="Search recipes..."
+        />
 
       </div>
       <div style={styles.feed}>
-        {recipes.map((r) => (
+        {visibleRecipes.map((r) => (
           <Card
             key={r.id}
             id={r.id}
@@ -77,7 +120,9 @@ const Home = () => {
           ></Card>
         ))}
 
-        {/* <Card title="pizza" image_url={pizzaimage} num_stars={4}></Card> */}
+        {recipes.length > 0 && visibleRecipes.length === 0 && (
+          <p style={styles.empty}>No recipes match your filters.</p>
+        )}
 
       </div>
     </div>
@@ -129,6 +174,10 @@ const styles = {
   feed: {
     display: 'flex',
     flexWrap: 'wrap',
+    padding: '10px',
+  },
+  empty: {
+    fontSize: '18px',
     padding: '10px',
   },
 }
