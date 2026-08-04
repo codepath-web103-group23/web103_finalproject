@@ -11,8 +11,11 @@ import EditPreferences from './pages/EditPreferences.jsx'
 import Recipe from './pages/Recipe.jsx'
 import Calendar from './pages/Calendar.jsx'
 import Admin from './pages/Admin.jsx'
+import Loading from './components/Loading.jsx'
+import GuestNav from './components/GuestNav.jsx'
 
 function App() {
+  const [checkingUser, setCheckingUser] = useState(false)
   const [loggedIn, setLoggedIn] = useState(false)
   const [user, setUser] = useState({})
   const location = useLocation()
@@ -21,50 +24,36 @@ function App() {
   const API_URL = import.meta.env.VITE_API_URL
 
   const getUser = async () => {
-    const response = await fetch(`${API_URL}/auth/login/success`, { credentials: 'include' } )
+      console.log("starting auth check")
+    try {
+      setCheckingUser(true)
 
-    if (!response.ok) {
-      setUser(null)
-      setLoggedIn(false)
-      return
+      const response = await fetch(
+        `${API_URL}/auth/login/success`, { credentials: 'include' } )
+
+      console.log("auth response:", response.status)
+
+      if (!response.ok) {
+        setUser(null)
+        setLoggedIn(false)
+        return
+      }
+
+      const json = await response.json()
+
+      console.log("auth received, user:", json)
+
+      setUser(json.user)
+      setLoggedIn(true)
+    } finally {
+      setCheckingUser(false)
+      console.log("finished auth check")
     }
-
-    const json = await response.json()
-    setUser(json.user)
-    setLoggedIn(true)
   }
 
   useEffect(() => {
     getUser()
-  }, []);
-  
-  // let routes = useRoutes([
-  //   {
-  //     path:'/',
-  //     element: <Login />
-  //   },
-  //   {
-  //     path:'/home',
-  //     element: <Home />
-  //   },
-  //   {
-  //     path:'/kitchen',
-  //     element: <Kitchen />
-  //   },
-  //   {
-  //     path:'/addIngredient',
-  //     element: <AddIngredient />
-  //   },
-  //   {
-  //     path:'/editIngredient/:id',
-  //     element: <EditIngredient />
-  //   },
-  //   {
-  //     path:'/login',
-  //     element: <Login />
-  //   }
-  // ])
-  
+  }, []); 
 
   let routes = useRoutes([
     {
@@ -129,18 +118,23 @@ function App() {
     },
   ])
 
-
-
-
   return (
     <div>
-      {loggedIn && !isLoginPage && <Nav user={user}></Nav>}
-      {!loggedIn && !isLoginPage && (
-        <div style={guestBarStyle}>
-          <span style={{ fontWeight: 700 }}>EatRite</span>
-          <Link to="/login" style={guestLinkStyle}>Log in</Link>
-        </div>
-      )}
+      {
+        (loggedIn && !isLoginPage && !checkingUser) ? 
+      <Nav user={user}></Nav> : (!isLoginPage && checkingUser) ?
+      <Loading></Loading> : <GuestNav></GuestNav>
+      }
+      
+      {/* guest nav */}
+      {/* { !loggedIn && !isLoginPage && checkingUser && ( */}
+      {/*   <div style={guestBarStyle}> */}
+      {/*     <span style={{ fontWeight: 700 }}>EatRite</span> */}
+      {/*     <Link to="/login" style={guestLinkStyle}>Log in</Link> */}
+      {/*   </div> */}
+      {/* ) */}
+      {/* } */}
+
       {routes}
     </div>
   )
