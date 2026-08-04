@@ -6,63 +6,38 @@ import pizzaimage from "../assets/pizza_image.jpg"
 import fourstar from "../assets/fourstar.png"
 import api from "../services/api.jsx"
 import favoritesApi from '../services/favoritesApi.js'
+import Loading from '../components/Loading.jsx'
+import loadingsvg from '../assets/loadingbig.svg'
 
-// <<<<<<< HEAD
-// const Home = () => {  
-//   const [recipes, setRecipes] = useState([])
-//   const [favIds, setFavIds] = useState([])
-// =======
-// const Home = ({ user }) => {
-//   const [recipes, setRecipes] = useState([])
-//   const [sortBy, setSortBy] = useState('none')
-// >>>>>>> origin/main
-
-// merge pt1
 const Home = ({ user }) => {
   const [recipes, setRecipes] = useState([])
+  const [loading, setLoading] = useState(true)
   const [sortBy, setSortBy] = useState('none')
   const [favIds, setFavIds] = useState([])
 
   useEffect(() => {
     const loadRecipes = async () => {
       const data = await api.getRecipes()
-      console.log("API DATA:", data)
-      setRecipes(data)
+      console.log(`DATA = ${data}`)
+      console.log("before loading change:", loading)
+      setRecipes(Array.isArray(data) ? data : [])
 
       const favs = await favoritesApi.getFavorites()
-      setFavIds(favs.map(f => f.recipe_id))
+      setFavIds(
+        Array.isArray(favs) ? favs.map(f => f.recipe_id) : [])
+
+      if (data) {
+        setLoading(false)
+      } else {
+        setTimeout(loadRecipes, 2000)
+        console.log('get data retry')
+      }
+
+      console.log("called setLoading false")
     }
     loadRecipes()
   }, [])
 
-// <<<<<<< HEAD
-//   const toggleFavorite = async (recipeId, isFav) => {
-//     setFavIds(prev =>
-//       isFav ? prev.filter(x => x !== recipeId) : [...prev, recipeId]
-//     )
-//     if (isFav) {
-//       await favoritesApi.deleteFavorite(recipeId)
-//     } else {
-//       await favoritesApi.createFavorite(recipeId)
-//     }
-//   }
-// =======
-//
-//   const sortedRecipes = [...recipes].sort((a, b) => {
-//     if (sortBy === 'rating') {
-//       return (b.avg_rating ?? 0) - (a.avg_rating ?? 0)
-//     }
-//     if (sortBy === 'newest') {
-//       return b.id - a.id
-//     }
-//     if (sortBy === 'oldest') {
-//       return a.id - b.id
-//     }
-//     return 0
-//   })
-// >>>>>>> origin/main
-
-  // merge pt2
   const toggleFavorite = async (recipeId, isFav) => {
     setFavIds(prev =>
       isFav ? prev.filter(x => x !== recipeId) : [...prev, recipeId]
@@ -125,7 +100,15 @@ const Home = ({ user }) => {
 
       </div>
       <div style={styles.feed}>
-        {sortedRecipes.map((r) => (
+        {
+          loading === true ?
+            
+          (<div style={styles.loadingBox}>
+            <p style={styles.loading}>Loading</p>
+            <img style={styles.img} src={loadingsvg}/>
+          </div>) :
+
+          sortedRecipes.map((r) => (
           <Card
             key={r.id}
             id={r.id}
@@ -137,7 +120,8 @@ const Home = ({ user }) => {
             onToggle={toggleFavorite}
             loggedIn={!!user?.id}
           ></Card>
-        ))}
+        ))
+        }
 
         {/* <Card title="pizza" image_url={pizzaimage} num_stars={4}></Card> */}
 
@@ -192,5 +176,20 @@ const styles = {
     display: 'flex',
     flexWrap: 'wrap',
     padding: '10px',
+  },
+  img: {
+    display: 'block',
+    height: '80px',
+  },
+  loadingBox: {
+    display: 'flex',
+    gap: 1,
+    alignItems: 'center',
+    margin: '0 auto',
+  },
+  loading: {
+    marginRight: '0px',
+    fontSize: '30px',
+    color: '#666a6e',
   },
 }
