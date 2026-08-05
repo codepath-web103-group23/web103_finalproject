@@ -14,6 +14,7 @@ const Profile = ({ user }) => {
   const [preferences, setPreferences] = useState([])
   const [recipes, setRecipes] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const toast = useToast()
 
   const toggle = () => setEditBox((open) => !open)
@@ -34,19 +35,27 @@ const Profile = ({ user }) => {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true)
+      setError(null)
       try {
-        const dataP = await preferenceApi.getPreferences()
+        // Preferences and favorites are unrelated, so fetch them together —
+        // favorites used to sit waiting on the preferences response.
+        const [dataP, dataF] = await Promise.all([
+          preferenceApi.getPreferences(),
+          favoritesApi.getFavorites(),
+        ])
+
         setPreferences(Array.isArray(dataP) ? dataP : [])
 
-        const dataF = await favoritesApi.getFavorites()
         const favorites = Array.isArray(dataF) ? dataF : []
-
         const recipeData = await Promise.all(
           favorites.map((favorite) => api.getRecipe(favorite.recipe_id))
         )
 
         setRecipes(recipeData.filter(Boolean))
       } catch (err) {
+        // A toast alone left the page looking like an empty profile rather
+        // than a failed one.
+        setError(err.message)
         toast.error("Couldn't load your profile.")
       } finally {
         setLoading(false)
@@ -79,6 +88,12 @@ const Profile = ({ user }) => {
           {user.is_admin && <span style={styles.roleChip}>Admin</span>}
         </div>
       </header>
+
+      {error && (
+        <div style={styles.errorBox} role="alert">
+          We couldn’t load your profile. {error}
+        </div>
+      )}
 
       <section style={styles.panel}>
         <div style={styles.panelHeader}>
@@ -268,5 +283,13 @@ const styles = {
     margin: `0 0 ${space.md}`,
     fontSize: font.size.sm,
     color: colors.textMuted,
+  },
+  errorBox: {
+    ...card,
+    padding: space.lg,
+    marginBottom: space.lg,
+    border: `2px solid ${colors.ink}`,
+    background: colors.surfaceAlt,
+    fontSize: font.size.sm,
   },
 }
