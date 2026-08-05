@@ -58,6 +58,7 @@ const EditIngredient = () => {
       headers: {
         'Content-Type': 'application/json'
       },
+      credentials: 'include',
       body: JSON.stringify(ingredient)
     }
     api.updateIngredient(id, options)
