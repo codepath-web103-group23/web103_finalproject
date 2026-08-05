@@ -1,48 +1,15 @@
-const API_URL = `${import.meta.env.VITE_API_URL}/api`
+import { request } from './http.js'
 
-const getPreferences = async () => {
-  try {
-    const result = await fetch(`${API_URL}/preferences`, { credentials: 'include' })
-    const data = result.json()
-    return data
-  } catch (err) {
-    console.log(err)
-  }
-}
+const getPreferences = () => request('/preferences')
 
-const createPreference = async (preference) => {
-  try {
-    const result = await fetch(`${API_URL}/create/preference`, { 
-      method: 'POST',
-      credentials: 'include' ,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(preference)
-    }
-    )
-    const data = await result.json()
-    return data
-  } catch (err) {
-    console.log(err)
-  }
-}
+const createPreference = (preference) =>
+  request('/create/preference', { method: 'POST', body: preference })
 
-const deletePreference = async (id) => {
-  try {
-    const response = await fetch(`${API_URL}/delete/preference/${id}`, {
-      method: "DELETE",
-      credentials: 'include',
-    })
-    const data = await response.json()
-    return data
-  } catch (err) {
-    console.log(err)
-  }
-}
+const deletePreference = (id) =>
+  request(`/delete/preference/${id}`, { method: 'DELETE' })
 
 export default {
   getPreferences,
-  createPreference, 
-  deletePreference
+  createPreference,
+  deletePreference,
 }
