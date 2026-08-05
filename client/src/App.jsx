@@ -105,7 +105,7 @@ function App() {
       path: '/recipe/:id',
       element: user && user.id
       ? <Recipe></Recipe>
-      : <Login></Login>
+      : <Navigate to='/login'/> 
     },
     {
       path: '/addRecipe',
