@@ -27,7 +27,8 @@ const createTable = async () => {
         username varchar(100) NOT NULL,
         avatarurl varchar(500) NOT NULL,
         accesstoken varchar(500) NOT NULL,
-        email TEXT UNIQUE
+        email TEXT UNIQUE,
+        is_admin BOOLEAN NOT NULL DEFAULT false
     );
 
     CREATE TABLE IF NOT EXISTS dietary_preferences (
