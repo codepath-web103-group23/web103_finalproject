@@ -9,6 +9,8 @@ router.get("/recipes", controller.getRecipes)
 router.get("/recipe/:id", controller.getRecipe)
 // <<<<<<< HEAD
 router.get("/recipe/:id/ingredients", controller.getRecipeIngredients)
+router.get("/patch/recipe/:id/ingredients", controller.patchRecipeIngredients)
+router.post("/create/recipe/ingredient", controller.createRecipeIngredient)
 router.patch("/patch/recipe/:id", controller.updateRecipe)
 router.delete("/delete/recipe/:id", controller.deleteRecipe)
 // =======

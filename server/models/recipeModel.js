@@ -84,16 +84,105 @@ const getRecipeIngredients = async (req, res) => {
   return data.rows
 }
 
+const patchRecipeIngredients = async (req, res) => {
+  const { id } = req.params
+  const { ingredients } = req.body
+
+  try {
+    // remove existing ingredients for this recipe
+    await pool.query(
+      `
+      DELETE FROM recipe_ingredients
+      WHERE recipe_id = $1
+      `,
+      [id]
+    )
+
+    // insert updated ingredients
+    for (const ingredient of ingredients) {
+      await pool.query(
+        `
+        INSERT INTO recipe_ingredients
+        (recipe_id, ingredient_id, quantity, unit)
+        VALUES ($1, $2, $3, $4)
+        `,
+        [
+          id,
+          ingredient.ingredient_id,
+          ingredient.quantity,
+          ingredient.unit
+        ]
+      )
+    }
+
+    const result = await pool.query(
+      `
+      SELECT ingredient_id, quantity, unit
+      FROM recipe_ingredients
+      WHERE recipe_id = $1
+      `,
+      [id]
+    )
+
+    return result.rows
+  } catch (err) {
+    throw err
+  }
+}
+
+const createRecipeIngredient = async (req, res) => {
+  const { recipe_id, ingredient_id, quantity, unit } = req.body
+
+  const result = await pool.query(
+    `
+    INSERT INTO recipe_ingredients
+    (recipe_id, ingredient_id, quantity, unit)
+    VALUES ($1, $2, $3, $4)
+    RETURNING *
+    `,
+    [
+      recipe_id,
+      ingredient_id,
+      quantity,
+      unit
+    ]
+  )
+
+  return result.rows[0]
+}
+
+// const updateRecipe = async (req, res) => {
+//   const { id } = req.params
+//   const data = req.body
+//   const { title, description, instructions, image_url, avg_rating } = data 
+//   const result = await pool.query(`
+//     UPDATE recipes
+//     SET title=$1, description=$2, instructions=$3, image_url=$4, avg_rating=$5
+//     RETURNING *`,
+//     [title, description, instructions, image_url, avg_rating]
+//   );
+//   return result.rows[0]
+// }
+
 const updateRecipe = async (req, res) => {
   const { id } = req.params
   const data = req.body
-  const { title, description, instructions, image_url, avg_rating } = data 
-  const result = await pool.query(`
+  const { title, description, instructions, image_url, avg_rating } = data
+
+  const result = await pool.query(
+    `
     UPDATE recipes
-    SET title=$1, description=$2, instructions=$3, image_url=$4, avg_rating=$5
-    RETURNING *`,
-    [title, description, instructions, image_url, avg_rating]
-  );
+    SET title=$1,
+        description=$2,
+        instructions=$3,
+        image_url=$4,
+        avg_rating=$5
+    WHERE id=$6
+    RETURNING *
+    `,
+    [title, description, instructions, image_url, avg_rating, id]
+  )
+
   return result.rows[0]
 }
 
@@ -111,6 +200,7 @@ export default {
   getRecipes,
   getRecipe,
   getRecipeIngredients,
+  createRecipeIngredient, 
   updateRecipe,
   deleteRecipe
 }
