@@ -14,13 +14,47 @@ const getKitchen = async (req, res) => {
 
 const addToKitchen = async (req, res) => {
   const userId = req.user.id
-  const { name, category, calories, dietary_tags, quantity, unit } = req.body
+  const { ingredient_id, name, category, calories, dietary_tags, quantity, unit } = req.body
 
-  const ingredientResult = await pool.query(`
-    INSERT INTO ingredients (name, category, calories, dietary_tags)
-    VALUES ($1, $2, $3, $4)
-    RETURNING *`, [name, category, calories, dietary_tags])
-  const ingredient = ingredientResult.rows[0]
+  // Two ways in:
+  //  - `ingredient_id` — the user picked something from the shared catalog.
+  //  - name/category/… — they're creating an ingredient that doesn't exist yet.
+  //
+  // Previously this always INSERTed a new ingredients row, so picking an
+  // existing one was impossible and the catalog filled up with duplicates
+  // ("Tomato" twice, "Chicken Breast" twice) every time someone stocked
+  // their kitchen.
+  let ingredient
+
+  if (ingredient_id) {
+    const existing = await pool.query(
+      'SELECT * FROM ingredients WHERE id=$1', [ingredient_id])
+
+    if (existing.rows.length === 0) {
+      const err = new Error('That ingredient no longer exists.')
+      err.status = 404
+      throw err
+    }
+    ingredient = existing.rows[0]
+
+    // removeFromKitchen deletes by (user_id, ingredient_id), so a second row
+    // for the same pair would be unreachable from the UI.
+    const already = await pool.query(
+      'SELECT id FROM kitchen WHERE user_id=$1 AND ingredient_id=$2',
+      [userId, ingredient_id])
+
+    if (already.rows.length > 0) {
+      const err = new Error(`${ingredient.name} is already in your kitchen.`)
+      err.status = 409
+      throw err
+    }
+  } else {
+    const ingredientResult = await pool.query(`
+      INSERT INTO ingredients (name, category, calories, dietary_tags)
+      VALUES ($1, $2, $3, $4)
+      RETURNING *`, [name, category, calories, dietary_tags])
+    ingredient = ingredientResult.rows[0]
+  }
 
   const kitchenResult = await pool.query(`
     INSERT INTO kitchen (user_id, ingredient_id, quantity, unit)
