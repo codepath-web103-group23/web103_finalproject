@@ -4,9 +4,13 @@ import Card from '../components/Card.jsx'
 import Search from '../components/SearchBar.jsx'
 import api from "../services/api.jsx"
 import favoritesApi from '../services/favoritesApi.js'
+import Loading from '../components/Loading.jsx'
+import loadingsvg from '../assets/loadingbig.svg'
 
-const Home = () => {  
+const Home = ({ user }) => {
   const [recipes, setRecipes] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [sortBy, setSortBy] = useState('none')
   const [favIds, setFavIds] = useState([])
 
   // filter / sort controls
@@ -17,11 +21,22 @@ const Home = () => {
   useEffect(() => {
     const loadRecipes = async () => {
       const data = await api.getRecipes()
-      console.log("API DATA:", data)
-      setRecipes(data)
+      console.log(`DATA = ${data}`)
+      console.log("before loading change:", loading)
+      setRecipes(Array.isArray(data) ? data : [])
 
       const favs = await favoritesApi.getFavorites()
-      setFavIds(favs.map(f => f.recipe_id))
+      setFavIds(
+        Array.isArray(favs) ? favs.map(f => f.recipe_id) : [])
+
+      if (data) {
+        setLoading(false)
+      } else {
+        setTimeout(loadRecipes, 2000)
+        console.log('get data retry')
+      }
+
+      console.log("called setLoading false")
     }
     loadRecipes()
   }, [])
@@ -30,13 +45,26 @@ const Home = () => {
     setFavIds(prev =>
       isFav ? prev.filter(x => x !== recipeId) : [...prev, recipeId]
     )
-
     if (isFav) {
       await favoritesApi.deleteFavorite(recipeId)
     } else {
       await favoritesApi.createFavorite(recipeId)
     }
   }
+  
+
+  const sortedRecipes = [...recipes].sort((a, b) => {
+    if (sortBy === 'rating') {
+      return (b.avg_rating ?? 0) - (a.avg_rating ?? 0)
+    }
+    if (sortBy === 'newest') {
+      return b.id - a.id
+    }
+    if (sortBy === 'oldest') {
+      return a.id - b.id
+    }
+    return 0
+  })
 
   // Derive the visible list from `recipes` + the controls. We never mutate
   // `recipes` itself, so clearing a filter always brings every recipe back.
@@ -69,7 +97,7 @@ const Home = () => {
         </h1>
       </div>
       <div style={styles.filterBox}>
-        
+
         <div style={styles.dropdownBox}>
           <div style={styles.dropdown}>
             <label style={styles.label} htmlFor="rating-filter">Min Rating:</label>
@@ -115,10 +143,13 @@ const Home = () => {
             title={r.title}
             image_url={r.image_url}
             avg_rating={r.avg_rating}
+            // merge pt3
             isFavorited={favIds.includes(r.id)}
             onToggle={toggleFavorite}
+            loggedIn={!!user?.id}
           ></Card>
-        ))}
+        ))
+        }
 
         {recipes.length > 0 && visibleRecipes.length === 0 && (
           <p style={styles.empty}>No recipes match your filters.</p>

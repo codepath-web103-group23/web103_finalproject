@@ -1,10 +1,10 @@
 import express from 'express'
-// import controller from '../controllers/controller.js'
 import controller from '../controllers/recipeController.js'
+import { requireAdmin } from '../middleware/requireAuth.js'
 
 const router = express.Router()
 
-router.post("/create/recipe", controller.createRecipe)
+router.post("/create/recipe", requireAdmin, controller.createRecipe)
 router.get("/recipes", controller.getRecipes)
 router.get("/recipe/:id", controller.getRecipe)
 router.get("/recipe/:id/ingredients", controller.getRecipeIngredients)

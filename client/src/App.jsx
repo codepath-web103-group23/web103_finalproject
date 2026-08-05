@@ -13,71 +13,54 @@ import Instructions from './pages/Instructions.jsx'
 import AddRecipe from './pages/AddRecipe.jsx'
 
 function App() {
+  const [checkingUser, setCheckingUser] = useState(false)
   const [loggedIn, setLoggedIn] = useState(false)
   const [user, setUser] = useState({})
   const location = useLocation()
   const isLoginPage = location.pathname === '/login'
 
-  const API_URL = "http://localhost:3000";
+  const API_URL = import.meta.env.VITE_API_URL
 
   const getUser = async () => {
-    const response = await fetch(`${API_URL}/auth/login/success`, { credentials: 'include' } )
+      console.log("starting auth check")
+    try {
+      setCheckingUser(true)
 
-    if (!response.ok) {
-      setUser(null)
-      setLoggedIn(false)
-      return
+      const response = await fetch(
+        `${API_URL}/auth/login/success`, { credentials: 'include' } )
+
+      console.log("auth response:", response.status)
+
+      if (!response.ok) {
+        setUser(null)
+        setLoggedIn(false)
+        return
+      }
+
+      const json = await response.json()
+
+      console.log("auth received, user:", json)
+
+      setUser(json.user)
+      setLoggedIn(true)
+    } finally {
+      setCheckingUser(false)
+      console.log("finished auth check")
     }
-
-    const json = await response.json()
-    setUser(json.user)
-    setLoggedIn(true)
   }
 
   useEffect(() => {
     getUser()
-  }, []);
-  
-  // let routes = useRoutes([
-  //   {
-  //     path:'/',
-  //     element: <Login />
-  //   },
-  //   {
-  //     path:'/home',
-  //     element: <Home />
-  //   },
-  //   {
-  //     path:'/kitchen',
-  //     element: <Kitchen />
-  //   },
-  //   {
-  //     path:'/addIngredient',
-  //     element: <AddIngredient />
-  //   },
-  //   {
-  //     path:'/editIngredient/:id',
-  //     element: <EditIngredient />
-  //   },
-  //   {
-  //     path:'/login',
-  //     element: <Login />
-  //   }
-  // ])
-  
+  }, []); 
 
   let routes = useRoutes([
     {
       path: '/',
-      element: user && user.id 
-        ? <Home user={user} /> 
-        : <Login api_url={API_URL} />
+      element: <Home user={user} />
     },
     {
       path: '/home',
-      element: user && user.id 
-        ? <Home user={user} /> 
-        : <Login api_url={API_URL} />
+      element: <Home user={user} />
     },
     {
       path: '/kitchen',
@@ -133,16 +116,47 @@ function App() {
     },
   ])
 
-
-
-
   return (
     <div>
-      {loggedIn && !isLoginPage && <Nav user={user}></Nav>}
-      {/* <Nav></Nav> */}
+      {
+        (loggedIn && !isLoginPage && !checkingUser) ? 
+      <Nav user={user}></Nav> : (!isLoginPage && checkingUser) ?
+      <Loading></Loading> : <GuestNav></GuestNav>
+      }
+      
+      {/* guest nav */}
+      {/* { !loggedIn && !isLoginPage && checkingUser && ( */}
+      {/*   <div style={guestBarStyle}> */}
+      {/*     <span style={{ fontWeight: 700 }}>EatRite</span> */}
+      {/*     <Link to="/login" style={guestLinkStyle}>Log in</Link> */}
+      {/*   </div> */}
+      {/* ) */}
+      {/* } */}
+
       {routes}
     </div>
   )
 }
 
 export default App
+
+const guestBarStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  border: 'solid black',
+  borderWidth: '2px',
+  height: '60px',
+  padding: '0 20px',
+  marginBottom: '5px',
+  fontSize: '20px',
+}
+
+const guestLinkStyle = {
+  textDecoration: 'none',
+  color: 'black',
+  border: 'solid black',
+  borderWidth: '1px',
+  borderRadius: '5px',
+  padding: '8px 16px',
+}

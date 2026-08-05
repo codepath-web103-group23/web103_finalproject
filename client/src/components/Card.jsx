@@ -1,6 +1,39 @@
-import { Link } from 'react-router-dom'
+// <<<<<<< HEAD
+// import { Link } from 'react-router-dom'
+//
+// function Card ({id, title, image_url, avg_rating, isFavorited, onToggle}) {
+// =======
+// import { Link, useNavigate } from 'react-router-dom'
+// import heart from '../assets/heart.png'
+// import favoritesApi from '../services/favoritesApi.js'
+//
+// function Card ({id, title, stars, image_url, avg_rating, loggedIn}) {
+//   const navigate = useNavigate()
+//
+//   const createFavorite = (recipe_id) => {
+//     if (!loggedIn) {
+//       navigate('/login')
+//       return
+//     }
+//     favoritesApi.createFavorite(recipe_id)
+//   }
+// >>>>>>> origin/main
 
-function Card ({id, title, image_url, avg_rating, isFavorited, onToggle}) {
+
+import { Link, useNavigate } from 'react-router-dom'
+import heart from '../assets/heart.png'
+import favoritesApi from '../services/favoritesApi.js'
+ 
+function Card ({id, title, stars, image_url, avg_rating, loggedIn, isFavorited, onToggle}) {
+  const navigate = useNavigate()
+
+  const createFavorite = (recipe_id) => {
+    if (!loggedIn) {
+      navigate('/login')
+      return
+    }
+    favoritesApi.createFavorite(recipe_id)
+  }
 
   return (
     <div style={styles.container}>

@@ -13,43 +13,14 @@ const Login = () => {
 
   return (
     <div>
-      <h1 style={styles.appTitle}>EatRite</h1>
+      {/* <h1 style={styles.appTitle}>EatRite</h1> */}
       <div style={styles.formContainer}>
         <h1 style={styles.title}>Login/Sign up</h1>
 
         <form style={styles.inForm}>
 
-          {/* <div style={styles.inputBox}> */}
-          {/*   <label htmlFor="name"> */}
-          {/*     Email */}
-          {/*   </label> */}
-          {/*   <input  */}
-          {/*     // id='name' */}
-          {/*     // name='name' */}
-          {/*     // type="text" */}
-          {/*     // value={ingredient.name} */}
-          {/*     // onChange={handleChange} */}
-          {/*     style={styles.input} */}
-          {/*   /> */}
-          {/* </div> */}
-
-          {/* <div style={styles.inputBox}> */}
-          {/*   <label htmlFor="name"> */}
-          {/*     Password  */}
-          {/*   </label> */}
-          {/*   <input  */}
-          {/*     // id='name' */}
-          {/*     // name='name' */}
-          {/*     // type="text" */}
-          {/*     // value={ingredient.name} */}
-          {/*     // onChange={handleChange} */}
-          {/*     style={styles.input} */}
-          {/*   /> */}
-          {/* </div> */}
-
           <div style={styles.inputBox}>
             <button 
-              // type="submit"
               type="button"
               onClick={api.login}
               style={styles.btn2}
@@ -58,24 +29,6 @@ const Login = () => {
               Continue with Github
             </button>
           </div>
-
-          {/* <button  */}
-          {/*   type="button" */}
-          {/*   onClick={() => { */}
-          {/*     console.log("BUTTON CLICKED") */}
-          {/*     api.login() */}
-          {/*   }} */}
-          {/*   style={styles.btn2} */}
-          {/* > */}
-          {/*   Login2 */}
-          {/* </button> */}
-
-          {/* <hr style={styles.hr}/> */}
-          {/* <div style={styles.signupBox}> */}
-          {/*   <p>Don't have an account?</p> */}
-          {/*   <Link to="/about">signup</Link> */}
-          {/* </div> */}
-
 
         </form>
       </div>

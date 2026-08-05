@@ -3,10 +3,35 @@ import passport from 'passport'
 
 const router = express.Router()
 
+// 1 user gets directed to github auth login
+router.get(
+  '/github',
+  passport.authenticate('github', {
+    scope: [ 'read:user' ]
+  })
+)
+
+// 2 session cookie is set
+router.get(
+  '/github/callback',
+  passport.authenticate('github', {
+    failureRedirect: `${process.env.CLIENT_URL}/`,
+  }),
+  (req, res) => {
+    res.redirect(`${process.env.CLIENT_URL}/home`)
+  }
+)
+
+// 3 returns user data back to client
 router.get('/login/success', (req, res) => {
     if (req.user) {
-        res.status(200).json({ success: true, user: req.user })
-    }
+      res.status(200).json({ success: true, user: req.user })
+    } else {
+      res.status(401).json({
+        success: false,
+        message: "Not logged in"
+      })
+  }
 })
 
 router.get('/login/failed', (req, res) => {
@@ -27,12 +52,6 @@ router.get('/logout', (req, res, next) => {
     })
 })
 
-router.get(
-  '/github',
-  passport.authenticate('github', {
-    scope: [ 'read:user' ]
-  })
-)
 
 // router.get(
 //   '/github/callback',
@@ -42,14 +61,5 @@ router.get(
 //   })
 // )
 
-router.get(
-  '/github/callback',
-  passport.authenticate('github', {
-    failureRedirect: 'http://localhost:5173/',
-  }),
-  (req, res) => {
-    res.redirect('http://localhost:5173/home')
-  }
-)
 
 export default router
