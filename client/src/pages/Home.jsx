@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import Card from '../components/Card.jsx'
 import Search from '../components/SearchBar.jsx'
 import api from "../services/api.jsx"
@@ -7,9 +7,14 @@ import Loading from '../components/Loading.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { button, colors, font, heading, input, radius, space } from '../styles/theme.js'
 
+// Survives unmounts, so returning from a recipe page paints the grid straight
+// away instead of showing the spinner and refetching. Still revalidates in the
+// background, so a recipe added on another page shows up.
+let recipeCache = null
+
 const Home = ({ user }) => {
-  const [recipes, setRecipes] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [recipes, setRecipes] = useState(recipeCache ?? [])
+  const [loading, setLoading] = useState(recipeCache === null)
   const [error, setError] = useState(null)
   const [favIds, setFavIds] = useState([])
   const toast = useToast()
@@ -22,30 +27,42 @@ const Home = ({ user }) => {
   const loggedIn = !!user?.id
 
   useEffect(() => {
+    let cancelled = false
+
     const loadRecipes = async () => {
-      setLoading(true)
+      // Only block on the spinner when there is nothing cached to show.
+      if (recipeCache === null) setLoading(true)
       setError(null)
       try {
-        const data = await api.getRecipes()
-        setRecipes(Array.isArray(data) ? data : [])
+        // Both requests at once — the favorites call used to wait on the
+        // recipes response before it even started.
+        const [data, favs] = await Promise.all([
+          api.getRecipes(),
+          // Favorites are a per-user endpoint — asking as a guest just 401s.
+          loggedIn ? favoritesApi.getFavorites() : Promise.resolve([]),
+        ])
 
-        // Favorites are a per-user endpoint — asking as a guest just 401s.
-        if (loggedIn) {
-          const favs = await favoritesApi.getFavorites()
-          setFavIds(Array.isArray(favs) ? favs.map(f => f.recipe_id) : [])
-        } else {
-          setFavIds([])
-        }
+        if (cancelled) return
+
+        const list = Array.isArray(data) ? data : []
+        recipeCache = list
+        setRecipes(list)
+        setFavIds(Array.isArray(favs) ? favs.map(f => f.recipe_id) : [])
       } catch (err) {
-        setError("We couldn't load recipes. Check your connection and try again.")
+        if (!cancelled && recipeCache === null) {
+          setError("We couldn't load recipes. Check your connection and try again.")
+        }
       } finally {
-        setLoading(false)
+        if (!cancelled) setLoading(false)
       }
     }
     loadRecipes()
+
+    return () => { cancelled = true }
   }, [loggedIn])
 
-  const toggleFavorite = async (recipeId, isFav) => {
+  // Stable identity, so memoized cards don't re-render on every keystroke.
+  const toggleFavorite = useCallback(async (recipeId, isFav) => {
     // Optimistic: flip the heart now, roll back if the request fails.
     setFavIds(prev =>
       isFav ? prev.filter(x => x !== recipeId) : [...prev, recipeId]
@@ -64,7 +81,7 @@ const Home = ({ user }) => {
       )
       toast.error("Couldn't update your favorites. Please try again.")
     }
-  }
+  }, [toast])
 
   // Derive the visible list from `recipes` + the controls. We never mutate
   // `recipes` itself, so clearing a filter always brings every recipe back.

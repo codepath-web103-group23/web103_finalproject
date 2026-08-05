@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { memo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import favoritesApi from '../services/favoritesApi.js'
 import trash from '../assets/trash-icon.svg'
 import { useToast } from './Toast.jsx'
 import { card, colors, font, radius, space } from '../styles/theme.js'
+import { sizedImage } from '../utils/image.js'
 
 // A favorited recipe on the profile page. Same shape as the Home card, but the
 // action is "remove from favorites" rather than a heart toggle.
@@ -33,10 +34,13 @@ function ProfileIngrCard ({ id, title, image_url, avg_rating, refresh }) {
       <Link to={`/recipe/${id}`} style={styles.imgLink}>
         {showImage ? (
           <img
-            src={image_url}
+            src={sizedImage(image_url, 500)}
             alt={title}
             style={styles.img}
+            width="500"
+            height="160"
             loading="lazy"
+            decoding="async"
             onError={() => setImgFailed(true)}
           />
         ) : (
@@ -76,7 +80,7 @@ function ProfileIngrCard ({ id, title, image_url, avg_rating, refresh }) {
   )
 }
 
-export default ProfileIngrCard;
+export default memo(ProfileIngrCard);
 
 const styles = {
   container: {

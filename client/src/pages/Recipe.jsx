@@ -5,6 +5,7 @@ import { Link, useParams } from 'react-router-dom'
 import Loading from '../components/Loading.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { button, card, colors, font, heading, radius, space } from '../styles/theme.js'
+import { sizedImage } from '../utils/image.js'
 
 // pg returns NUMERIC columns as strings ("2.00"), so trim the trailing zeros
 const formatQuantity = (quantity) => {
@@ -89,9 +90,12 @@ const Recipe = () => {
         <div style={styles.heroMedia}>
           {showImage ? (
             <img
-              src={recipe.image_url}
+              src={sizedImage(recipe.image_url, 900)}
               alt={recipe.title}
               style={styles.img}
+              width="900"
+              height="320"
+              decoding="async"
               onError={() => setImgFailed(true)}
             />
           ) : (

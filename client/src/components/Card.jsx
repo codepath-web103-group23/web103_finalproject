@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { memo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { button, card, colors, font, radius, space } from '../styles/theme.js'
+import { sizedImage } from '../utils/image.js'
 
 function Card ({id, title, image_url, avg_rating, loggedIn, isFavorited, onToggle}) {
   const [imgFailed, setImgFailed] = useState(false)
@@ -17,10 +18,13 @@ function Card ({id, title, image_url, avg_rating, loggedIn, isFavorited, onToggl
       <Link to={`/recipe/${id}`} style={styles.imgLink}>
         {showImage ? (
           <img
-            src={image_url}
+            src={sizedImage(image_url, 600)}
             alt={title}
             style={styles.img}
+            width="600"
+            height="220"
             loading="lazy"
+            decoding="async"
             onError={() => setImgFailed(true)}
           />
         ) : (
@@ -79,7 +83,10 @@ function Card ({id, title, image_url, avg_rating, loggedIn, isFavorited, onToggl
   )
 }
 
-export default Card;
+// 32 cards re-rendered on every keystroke in the search box. Their props are
+// primitives, so a shallow compare is enough to skip the ones that did not
+// change.
+export default memo(Card);
 
 const styles = {
   container: {
