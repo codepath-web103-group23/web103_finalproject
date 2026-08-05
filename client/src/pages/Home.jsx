@@ -1,9 +1,207 @@
+// import React from 'react'
+// import { useEffect, useState } from 'react'
+// import Card from '../components/Card.jsx'
+// import Search from '../components/SearchBar.jsx'
+// import pizzaimage from "../assets/pizza_image.jpg"
+// import fourstar from "../assets/fourstar.png"
+// import api from "../services/api.jsx"
+// import favoritesApi from '../services/favoritesApi.js'
+// import Loading from '../components/Loading.jsx'
+// import loadingsvg from '../assets/loadingbig.svg'
+//
+// const Home = ({ user }) => {
+//   const [recipes, setRecipes] = useState([])
+//   const [loading, setLoading] = useState(true)
+//   const [sortBy, setSortBy] = useState('none')
+//   const [favIds, setFavIds] = useState([])
+//
+//   useEffect(() => {
+//     const loadRecipes = async () => {
+//       const data = await api.getRecipes()
+//       console.log(`DATA = ${data}`)
+//       console.log("before loading change:", loading)
+//       setRecipes(Array.isArray(data) ? data : [])
+//
+//       const favs = await favoritesApi.getFavorites()
+//       setFavIds(
+//         Array.isArray(favs) ? favs.map(f => f.recipe_id) : [])
+//
+//       if (data) {
+//         setLoading(false)
+//       } else {
+//         setTimeout(loadRecipes, 2000)
+//         console.log('get data retry')
+//       }
+//
+//       console.log("called setLoading false")
+//     }
+//     loadRecipes()
+//   }, [])
+//
+//   const toggleFavorite = async (recipeId, isFav) => {
+//     setFavIds(prev =>
+//       isFav ? prev.filter(x => x !== recipeId) : [...prev, recipeId]
+//     )
+//     if (isFav) {
+//       await favoritesApi.deleteFavorite(recipeId)
+//     } else {
+//       await favoritesApi.createFavorite(recipeId)
+//     }
+//   }
+//   
+//
+//   const sortedRecipes = [...recipes].sort((a, b) => {
+//     if (sortBy === 'rating') {
+//       return (b.avg_rating ?? 0) - (a.avg_rating ?? 0)
+//     }
+//     if (sortBy === 'newest') {
+//       return b.id - a.id
+//     }
+//     if (sortBy === 'oldest') {
+//       return a.id - b.id
+//     }
+//     return 0
+//   })
+//
+//   return (
+//     <div>
+//       <div style={styles.titleBox}>
+//         <h1 style={styles.filterTitle}>Recipe Results</ h1>
+//       </div>
+//       <div style={styles.filterBox}>
+//
+//         <div style={styles.dropdownBox}>
+//           <div style={styles.dropdown}>
+//             <label style={styles.label}>Sort by Rating:</label>
+//             <select
+//               style={styles.select}
+//               value={sortBy === 'rating' ? 'rating' : ''}
+//               onChange={(e) => setSortBy(e.target.value || 'none')}
+//             >
+//               <option value="">--</option>
+//               <option value="rating">Highest rated</option>
+//             </select>
+//           </div>
+//           <div style={styles.dropdown}>
+//             <label style={styles.label}>Sort by Date:</label>
+//             <select
+//               style={styles.select}
+//               value={sortBy === 'newest' || sortBy === 'oldest' ? sortBy : ''}
+//               onChange={(e) => setSortBy(e.target.value || 'none')}
+//             >
+//               <option value="">--</option>
+//               <option value="newest">Newest</option>
+//               <option value="oldest">Oldest</option>
+//             </select>
+//           </div>
+//         </div>
+//
+//         <Search></Search>
+//
+//       </div>
+//       <div style={styles.feed}>
+//         {
+//           loading === true ?
+//             
+//           (<div style={styles.loadingBox}>
+//             <p style={styles.loading}>Loading</p>
+//             <img style={styles.img} src={loadingsvg}/>
+//           </div>) :
+//
+//           sortedRecipes.map((r) => (
+//           <Card
+//             key={r.id}
+//             id={r.id}
+//             title={r.title}
+//             image_url={r.image_url}
+//             avg_rating={r.avg_rating}
+//             // merge pt3
+//             isFavorited={favIds.includes(r.id)}
+//             onToggle={toggleFavorite}
+//             loggedIn={!!user?.id}
+//           ></Card>
+//         ))
+//         }
+//
+//         {/* <Card title="pizza" image_url={pizzaimage} num_stars={4}></Card> */}
+//
+//       </div>
+//     </div>
+//   )
+// }
+//
+// export default Home;
+//
+// const styles = {
+//   titleBox: {
+//     textAlign: 'left',
+//     paddingLeft: '5px',
+//   },
+//   filterTitle: {
+//     fontSize: '20px',
+//     // height: '1px',
+//   },
+//   filterBox: {
+//     border: 'solid black',
+//     marginBottom: '20px',
+//     padding: '10px',
+//     display: 'flex',
+//     justifyContent: 'space-between',
+//   },
+//   selectBox: {
+//     fontSize: '20px',
+//     padding: '10px',
+//   },
+//   dropdownBox: {
+//     display: 'flex',
+//     gap: 20,
+//   },
+//   dropdown: {
+//     display: "flex",
+//     // flexDirection: "column",
+//     alignItems: "center",
+//     gap: "8px",
+//   },
+//   label: {
+//     fontSize: "18px",
+//     fontWeight: "bold",
+//   },
+//   select: {
+//     padding: "8px 12px",
+//     borderRadius: "8px",
+//     border: "1px solid #ccc",
+//     fontSize: "16px",
+//   },
+//   feed: {
+//     display: 'flex',
+//     flexWrap: 'wrap',
+//     padding: '10px',
+//   },
+//   img: {
+//     display: 'block',
+//     height: '80px',
+//   },
+//   loadingBox: {
+//     display: 'flex',
+//     gap: 1,
+//     alignItems: 'center',
+//     margin: '0 auto',
+//   },
+//   loading: {
+//     marginRight: '0px',
+//     fontSize: '30px',
+//     color: '#666a6e',
+//   },
+// }
+//
+//
+//
+
+
 import React from 'react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Card from '../components/Card.jsx'
 import Search from '../components/SearchBar.jsx'
-import pizzaimage from "../assets/pizza_image.jpg"
-import fourstar from "../assets/fourstar.png"
 import api from "../services/api.jsx"
 import favoritesApi from '../services/favoritesApi.js'
 import Loading from '../components/Loading.jsx'
@@ -14,6 +212,11 @@ const Home = ({ user }) => {
   const [loading, setLoading] = useState(true)
   const [sortBy, setSortBy] = useState('none')
   const [favIds, setFavIds] = useState([])
+
+  // filter / sort controls
+  const [query, setQuery] = useState("")
+  const [minRating, setMinRating] = useState("all")
+  const [sortOrder, setSortOrder] = useState("newest")
 
   useEffect(() => {
     const loadRecipes = async () => {
@@ -63,69 +266,120 @@ const Home = ({ user }) => {
     return 0
   })
 
+  // Derive the visible list from `recipes` + the controls. We never mutate
+  // `recipes` itself, so clearing a filter always brings every recipe back.
+  const visibleRecipes = useMemo(() => {
+    const search = query.trim().toLowerCase()
+
+    const filtered = recipes.filter((r) => {
+      const matchesSearch =
+        search === "" || (r.title ?? "").toLowerCase().includes(search)
+
+      // pg returns NUMERIC columns as strings, so coerce before comparing
+      const matchesRating =
+        minRating === "all" || Number(r.avg_rating ?? 0) >= Number(minRating)
+
+      return matchesSearch && matchesRating
+    })
+
+    // The recipes table has no date column, so `id` (SERIAL) stands in for
+    // insertion order: a higher id was added later.
+    return [...filtered].sort((a, b) =>
+      sortOrder === "newest" ? b.id - a.id : a.id - b.id
+    )
+  }, [recipes, query, minRating, sortOrder])
+
   return (
     <div>
       <div style={styles.titleBox}>
-        <h1 style={styles.filterTitle}>Recipe Results</ h1>
+        <h1 style={styles.filterTitle}>
+          Recipe Results ({visibleRecipes.length})
+        </h1>
       </div>
       <div style={styles.filterBox}>
 
         <div style={styles.dropdownBox}>
           <div style={styles.dropdown}>
-            <label style={styles.label}>Sort by Rating:</label>
+            <label style={styles.label} htmlFor="rating-filter">Min Rating:</label>
             <select
+              id="rating-filter"
               style={styles.select}
-              value={sortBy === 'rating' ? 'rating' : ''}
-              onChange={(e) => setSortBy(e.target.value || 'none')}
+              value={minRating}
+              onChange={(e) => setMinRating(e.target.value)}
             >
-              <option value="">--</option>
-              <option value="rating">Highest rated</option>
+              <option value="all">All ratings</option>
+              <option value="1">1+ stars</option>
+              <option value="2">2+ stars</option>
+              <option value="3">3+ stars</option>
+              <option value="4">4+ stars</option>
             </select>
           </div>
           <div style={styles.dropdown}>
-            <label style={styles.label}>Sort by Date:</label>
+            <label style={styles.label} htmlFor="date-sort">Sort by Added:</label>
             <select
+              id="date-sort"
               style={styles.select}
-              value={sortBy === 'newest' || sortBy === 'oldest' ? sortBy : ''}
-              onChange={(e) => setSortBy(e.target.value || 'none')}
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value)}
             >
-              <option value="">--</option>
               <option value="newest">Newest</option>
               <option value="oldest">Oldest</option>
             </select>
           </div>
         </div>
 
-        <Search></Search>
+        <Search
+          value={query}
+          onChange={setQuery}
+          placeholder="Search recipes..."
+        />
 
       </div>
-      <div style={styles.feed}>
-        {
-          loading === true ?
-            
-          (<div style={styles.loadingBox}>
-            <p style={styles.loading}>Loading</p>
-            <img style={styles.img} src={loadingsvg}/>
-          </div>) :
+      {/* <div style={styles.feed}> */}
+      {/*   {visibleRecipes.map((r) => ( */}
+      {/*     <Card */}
+      {/*       key={r.id} */}
+      {/*       id={r.id} */}
+      {/*       title={r.title} */}
+      {/*       image_url={r.image_url} */}
+      {/*       avg_rating={r.avg_rating} */}
+      {/*       // merge pt3 */}
+      {/*       isFavorited={favIds.includes(r.id)} */}
+      {/*       onToggle={toggleFavorite} */}
+      {/*       loggedIn={!!user?.id} */}
+      {/*     ></Card> */}
+      {/*   )) */}
+      {/*   } */}
 
-          sortedRecipes.map((r) => (
-          <Card
-            key={r.id}
-            id={r.id}
-            title={r.title}
-            image_url={r.image_url}
-            avg_rating={r.avg_rating}
-            // merge pt3
-            isFavorited={favIds.includes(r.id)}
-            onToggle={toggleFavorite}
-            loggedIn={!!user?.id}
-          ></Card>
-        ))
-        }
+        <div style={styles.feed}>
+          {
+            loading === true ?
+              (<div style={styles.loadingBox}>
+                <p style={styles.loading}>Loading</p>
+                <img style={styles.img} src={loadingsvg}/>
+              </div>) :
 
-        {/* <Card title="pizza" image_url={pizzaimage} num_stars={4}></Card> */}
+              visibleRecipes.map((r) => (
+                <Card
+                  key={r.id}
+                  id={r.id}
+                  title={r.title}
+                  image_url={r.image_url}
+                  avg_rating={r.avg_rating}
+                  isFavorited={favIds.includes(r.id)}
+                  onToggle={toggleFavorite}
+                  loggedIn={!!user?.id}
+                ></Card>
+              ))
+          }
+        </div>
 
-      </div>
+
+        {recipes.length > 0 && visibleRecipes.length === 0 && (
+          <p style={styles.empty}>No recipes match your filters.</p>
+        )}
+
+      {/* </div> */}
     </div>
   )
 }
@@ -172,6 +426,15 @@ const styles = {
     border: "1px solid #ccc",
     fontSize: "16px",
   },
+  // feed: {
+  //   display: 'flex',
+  //   flexWrap: 'wrap',
+  //   padding: '10px',
+  // },
+  empty: {
+    fontSize: '18px',
+    padding: '10px',
+  },
   feed: {
     display: 'flex',
     flexWrap: 'wrap',
@@ -193,3 +456,4 @@ const styles = {
     color: '#666a6e',
   },
 }
+
