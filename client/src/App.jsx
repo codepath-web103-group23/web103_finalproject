@@ -10,6 +10,7 @@ import Profile from './pages/Profile.jsx'
 import EditPreferences from './pages/EditPreferences.jsx'
 import Recipe from './pages/Recipe.jsx'
 import Instructions from './pages/Instructions.jsx'
+import AddRecipe from './pages/AddRecipe.jsx'
 
 function App() {
   const [loggedIn, setLoggedIn] = useState(false)
@@ -117,6 +118,12 @@ function App() {
       element: user && user.id
       ? <Recipe></Recipe>
       : <Login></Login>
+    },
+    {
+      path: '/addRecipe',
+      element: user && user.id
+      ? <AddRecipe user={user} />
+      : <Login api_url={API_URL} />
     },
     {
       path: '/recipe/:id/instructions',

@@ -27,6 +27,10 @@ const Kitchen = () => {
     navigate('/addIngredient')
   }
 
+  const handleAddRecipe = () => {
+    navigate('/addRecipe')
+  }
+
   const handleEdit = (id) => {
     navigate(`/editIngredient/${id}`)
   }
@@ -65,6 +69,7 @@ const Kitchen = () => {
           {/*   onSelect={setSelectedItem} */}
           {/* ></Search> */}
           <button style={styles.addbtn} onClick={handleAddItem}>+Add Ingredient</button>
+          <button style={styles.addbtn} onClick={handleAddRecipe}>+Add Recipe</button>
         </div>
       </div>
 

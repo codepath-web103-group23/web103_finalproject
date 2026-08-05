@@ -67,6 +67,16 @@ const getRecipe = async (id) => {
   }
 }
 
+const createRecipe = async (options) => {
+  try {
+    const response = await fetch(`${API_URL}/create/recipe`, options)
+    const data = await response.json()
+    return data
+  } catch (err) {
+    console.log(err)
+  }
+}
+
 const getRecipeIngredients = async (id) => {
   try {
     const response = await fetch(`${API_URL}/recipe/${id}/ingredients`)
@@ -86,5 +96,6 @@ export default {
 
   getRecipes,
   getRecipe,
-  getRecipeIngredients
+  getRecipeIngredients,
+  createRecipe
 }

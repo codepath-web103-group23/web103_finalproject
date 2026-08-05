@@ -1,18 +1,53 @@
 import { pool } from '../db/dbpool.js'
 
 const createRecipe = async (req, res) => {
-  const { id, title, description, instructions, image_url, avg_rating } = req.body 
+  const { recipe, ingredients = [] } = req.body
+  const { title, description, instructions, image_url } = recipe
 
-  const result = await pool.query(
-    `
-      INSERT INTO recipes
-      (title, description, instructions, image_url, avg_rating)
-      VALUES ($1, $2, $3, $4, $5)
-      RETURNING *
-    `,
-    [title, description, instructions, image_url, avg_rating]
-  )
-  return result.rows[0]
+  // Both tables have to be written together, so grab ONE connection and run a
+  // transaction on it. pool.query() would hand each statement a different
+  // connection, and BEGIN only applies to the connection that ran it.
+  const client = await pool.connect()
+
+  try {
+    await client.query('BEGIN')
+
+    const result = await client.query(
+      `
+        INSERT INTO recipes
+        (title, description, instructions, image_url)
+        VALUES ($1, $2, $3, $4)
+        RETURNING *
+      `,
+      [title, description, instructions, image_url]
+    )
+
+    // postgres assigns the id, so we only learn it here - the ingredient rows
+    // cannot be written before this point
+    const newRecipe = result.rows[0]
+
+    for (const row of ingredients) {
+      await client.query(
+        `
+          INSERT INTO recipe_ingredients
+          (recipe_id, ingredient_id, quantity, unit)
+          VALUES ($1, $2, $3, $4)
+        `,
+        [newRecipe.id, row.ingredient_id, row.quantity || null, row.unit || null]
+      )
+    }
+
+    await client.query('COMMIT')
+    return newRecipe
+
+  } catch (err) {
+    // any failure undoes the whole thing - no half-saved recipes
+    await client.query('ROLLBACK')
+    throw err
+
+  } finally {
+    client.release()
+  }
 }
 
 const getRecipes = async (req, res) => {
