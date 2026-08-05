@@ -6,6 +6,7 @@ import Loading from '../components/Loading.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { button, card, colors, font, heading, radius, space } from '../styles/theme.js'
 import { sizedImage } from '../utils/image.js'
+import { buildPantry, summarise, LABELS, HAVE, LOW, MISSING, UNKNOWN } from '../utils/pantry.js'
 
 // pg returns NUMERIC columns as strings ("2.00"), so trim the trailing zeros
 const formatQuantity = (quantity) => {
@@ -16,6 +17,7 @@ const formatQuantity = (quantity) => {
 const Recipe = () => {
   const [recipe, setRecipe] = useState(null)
   const [ingredients, setIngredients] = useState([])
+  const [kitchen, setKitchen] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [copied, setCopied] = useState(false)
@@ -28,11 +30,18 @@ const Recipe = () => {
       setLoading(true)
       setError(null)
       try {
-        const data = await api.getRecipe(params.id)
-        setRecipe(data)
+        // All three at once — these used to run one after another.
+        const [data, recipeIngredients, kitchenRows] = await Promise.all([
+          api.getRecipe(params.id),
+          api.getRecipeIngredients(params.id),
+          // This route is login-gated, so the kitchen is always available.
+          // A failure here shouldn't cost you the recipe itself.
+          api.getKitchen().catch(() => []),
+        ])
 
-        const recipeIngredients = await api.getRecipeIngredients(params.id)
+        setRecipe(data)
         setIngredients(Array.isArray(recipeIngredients) ? recipeIngredients : [])
+        setKitchen(Array.isArray(kitchenRows) ? kitchenRows : [])
       } catch (err) {
         setError(err.message)
       } finally {
@@ -74,6 +83,7 @@ const Recipe = () => {
     )
   }
 
+  const pantrySummary = summarise(buildPantry(kitchen), ingredients)
   const rating = recipe.avg_rating == null ? null : Number(recipe.avg_rating)
   const hasRating = rating != null && !Number.isNaN(rating)
   const showImage = recipe.image_url && !imgFailed
@@ -146,20 +156,52 @@ const Recipe = () => {
 
       <div style={styles.columns}>
         <section style={styles.panel}>
-          <h2 style={styles.panelTitle}>Ingredients</h2>
+          <div style={styles.panelHeader}>
+            <h2 style={styles.panelTitle}>Ingredients</h2>
+            {ingredients.length > 0 && (
+              <span style={styles.tally}>
+                {pantrySummary.have} of {pantrySummary.total} in your kitchen
+              </span>
+            )}
+          </div>
+
           {ingredients.length === 0 ? (
             <p style={styles.empty}>No ingredients listed for this recipe.</p>
           ) : (
             <ul style={styles.ingrList}>
-              {ingredients.map((ingredient) => (
-                <li key={ingredient.id} style={styles.ingrRow}>
-                  <span>{ingredient.name}</span>
-                  <span style={styles.amount}>
-                    {formatQuantity(ingredient.quantity)} {ingredient.unit}
-                  </span>
-                </li>
-              ))}
+              {ingredients.map((ingredient, index) => {
+                const status = pantrySummary.statuses[index]
+                const missing = status === MISSING
+                return (
+                  <li key={ingredient.id} style={styles.ingrRow}>
+                    <span style={styles.ingrName}>
+                      <span
+                        style={missing ? styles.markMissing : styles.markHave}
+                        aria-hidden="true"
+                      >
+                        {missing ? '○' : '✓'}
+                      </span>
+                      <span style={missing ? styles.nameMissing : undefined}>
+                        {ingredient.name}
+                      </span>
+                      <span style={styles.srOnly}>{LABELS[status]}</span>
+                    </span>
+                    <span style={styles.amount}>
+                      {formatQuantity(ingredient.quantity)} {ingredient.unit}
+                      {status === LOW && <span style={styles.flag}>low</span>}
+                    </span>
+                  </li>
+                )
+              })}
             </ul>
+          )}
+
+          {pantrySummary.missing > 0 && (
+            <p style={styles.shopHint}>
+              You’re missing {pantrySummary.missing}{' '}
+              {pantrySummary.missing === 1 ? 'ingredient' : 'ingredients'} —{' '}
+              <Link to="/addIngredient" style={styles.shopLink}>add to your kitchen</Link>
+            </p>
           )}
         </section>
 
@@ -352,8 +394,64 @@ const styles = {
     borderBottom: `1px solid ${colors.border}`,
   },
   amount: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: space.sm,
     fontWeight: font.weight.bold,
     whiteSpace: 'nowrap',
+  },
+  tally: {
+    fontSize: font.size.sm,
+    fontWeight: font.weight.semibold,
+    color: colors.textMuted,
+  },
+  ingrName: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: space.sm,
+  },
+  markHave: {
+    color: colors.ink,
+    fontWeight: font.weight.bold,
+  },
+  // Monochrome palette, so a missing item is an open circle and greyed text
+  // rather than a red cross.
+  markMissing: {
+    color: colors.textFaint,
+  },
+  nameMissing: {
+    color: colors.textFaint,
+  },
+  flag: {
+    padding: '1px 6px',
+    fontSize: font.size.xs,
+    fontWeight: font.weight.semibold,
+    textTransform: 'uppercase',
+    letterSpacing: '0.4px',
+    color: colors.textMuted,
+    background: colors.surfaceAlt,
+    border: `1px solid ${colors.border}`,
+    borderRadius: radius.sm,
+  },
+  shopHint: {
+    margin: `${space.md} 0 0`,
+    fontSize: font.size.sm,
+    color: colors.textMuted,
+  },
+  shopLink: {
+    color: colors.ink,
+    fontWeight: font.weight.semibold,
+  },
+  srOnly: {
+    position: 'absolute',
+    width: '1px',
+    height: '1px',
+    padding: 0,
+    margin: '-1px',
+    overflow: 'hidden',
+    clip: 'rect(0, 0, 0, 0)',
+    whiteSpace: 'nowrap',
+    border: 0,
   },
   copyBtn: {
     ...button.secondary,

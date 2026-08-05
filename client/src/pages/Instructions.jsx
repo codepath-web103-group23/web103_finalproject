@@ -6,9 +6,12 @@ import Loading from '../components/Loading.jsx'
 import Modal from '../components/Modal.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { button, card, colors, font, heading, radius, space } from '../styles/theme.js'
+import { buildPantry, summarise, MISSING } from '../utils/pantry.js'
 
 const Instructions = () => {
   const [recipe, setRecipe] = useState(null)
+  const [ingredients, setIngredients] = useState([])
+  const [kitchen, setKitchen] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   // Cook mode: ticking a step off keeps your place while your hands are busy.
@@ -25,8 +28,14 @@ const Instructions = () => {
     const loadRecipe = async () => {
       setLoading(true)
       try {
-        const data = await api.getRecipe(params.id)
+        const [data, recipeIngredients, kitchenRows] = await Promise.all([
+          api.getRecipe(params.id),
+          api.getRecipeIngredients(params.id),
+          api.getKitchen().catch(() => []),
+        ])
         setRecipe(data)
+        setIngredients(Array.isArray(recipeIngredients) ? recipeIngredients : [])
+        setKitchen(Array.isArray(kitchenRows) ? kitchenRows : [])
       } catch (err) {
         setError(err.message)
       } finally {
@@ -74,6 +83,10 @@ const Instructions = () => {
   }
 
   const progress = steps.length === 0 ? 0 : Math.round((done.length / steps.length) * 100)
+  const pantry = summarise(buildPantry(kitchen), ingredients)
+  const missingNames = ingredients
+    .filter((_, i) => pantry.statuses[i] === MISSING)
+    .map((i) => i.name)
 
   return (
     <div style={styles.wrap}>
@@ -97,6 +110,19 @@ const Instructions = () => {
           <div style={{ ...styles.progressFill, width: `${progress}%` }} />
         </div>
       </header>
+
+      {/* Before the first step: what you're short of, so you find out now
+          rather than halfway through cooking. */}
+      {ingredients.length > 0 && (
+        <div style={styles.pantryBar}>
+          <span style={styles.pantryTally}>
+            {pantry.have} of {pantry.total} ingredients in your kitchen
+          </span>
+          {missingNames.length > 0 && (
+            <span style={styles.pantryMissing}>Missing: {missingNames.join(', ')}</span>
+          )}
+        </div>
+      )}
 
       <div style={styles.panel}>
         {steps.length === 0 ? (
@@ -324,6 +350,25 @@ const styles = {
   },
   secondaryBtn: {
     ...button.secondary,
+  },
+  pantryBar: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: space.sm,
+    padding: `${space.sm} ${space.md}`,
+    marginBottom: space.md,
+    background: colors.surfaceAlt,
+    border: `1px solid ${colors.border}`,
+    borderRadius: radius.md,
+    fontSize: font.size.sm,
+  },
+  pantryTally: {
+    fontWeight: font.weight.semibold,
+  },
+  pantryMissing: {
+    color: colors.textMuted,
   },
   finishBar: {
     ...card,

@@ -14,6 +14,8 @@ import { fileURLToPath } from 'url'
 // authentication libraries
 import passport from 'passport'
 import session from 'express-session'
+import connectPgSimple from 'connect-pg-simple'
+import { pool } from './db/dbpool.js'
 import { GitHub } from './config/auth.js'
 import authroutes from './routes/auth.js'
 
@@ -26,6 +28,10 @@ console.log("server setup")
 
 app.use(express.json())
 
+// Render terminates TLS in front of the app, so without this Express sees
+// http:// and refuses to set the `secure` session cookie in production.
+app.set('trust proxy', 1)
+
 // auth
 
 
@@ -36,10 +42,31 @@ app.use(cors({
   credentials: true
 }))
 
+// Sessions live in Postgres, not in memory.
+//
+// The default MemoryStore threw every session away whenever the process
+// restarted, so each `nodemon` reload — i.e. every server file save — silently
+// logged everyone out. That is the "login stops working" behaviour, not
+// anything wrong with the GitHub flow.
+const PgSession = connectPgSimple(session)
+
 app.use(session({
-  secret: 'codepath',
+  store: new PgSession({
+    pool,
+    tableName: 'user_sessions',
+    // Creates the table on first boot so a fresh clone needs no extra step.
+    createTableIfMissing: true,
+  }),
+  secret: process.env.SESSION_SECRET || 'codepath',
   resave: false,
-  saveUninitialized: false
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    maxAge: 1000 * 60 * 60 * 24 * 7, // a week
+    // Render terminates TLS, so only mark the cookie secure in production.
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+  },
 }))
 
 app.use(passport.initialize())
