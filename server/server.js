@@ -31,7 +31,8 @@ app.use(express.json())
 
 app.use(cors({
   origin: process.env.CLIENT_URL,
-  methods: 'get, post, put, delete, patch',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  // methods: 'get, post, put, delete, patch',
   credentials: true
 }))
 

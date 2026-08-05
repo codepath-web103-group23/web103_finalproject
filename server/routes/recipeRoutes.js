@@ -1,19 +1,17 @@
 import express from 'express'
 import controller from '../controllers/recipeController.js'
-// import { requireAdmin } from '../middleware/requireAuth.js'
+import { requireAuth, requireAdmin } from '../middleware/requireAuth.js'
 
 const router = express.Router()
 
-router.post("/create/recipe", controller.createRecipe)
+// reading recipes stays open so guests can browse before signing up
+router.post("/create/recipe", requireAuth, controller.createRecipe)
 router.get("/recipes", controller.getRecipes)
 router.get("/recipe/:id", controller.getRecipe)
-// <<<<<<< HEAD
 router.get("/recipe/:id/ingredients", controller.getRecipeIngredients)
-router.patch("/patch/recipe/:id", controller.updateRecipe)
-router.delete("/delete/recipe/:id", controller.deleteRecipe)
-// =======
-// router.patch("/patch/recipe/:id", requireAdmin, controller.updateRecipe)
-// router.delete("/delete/recipe/:id", requireAdmin, controller.deleteRecipe)
-// >>>>>>> origin/main
+router.get("/patch/recipe/:id/ingredients", requireAdmin, controller.patchRecipeIngredients)
+router.post("/create/recipe/ingredient", requireAdmin, controller.createRecipeIngredient)
+router.patch("/patch/recipe/:id", requireAdmin, controller.updateRecipe)
+router.delete("/delete/recipe/:id", requireAdmin, controller.deleteRecipe)
 
 export default router

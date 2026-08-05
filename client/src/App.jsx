@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useRoutes, Link, useLocation } from 'react-router-dom'
+import { useRoutes, Link, useLocation, Navigate } from 'react-router-dom'
 import Nav from './components/Nav.jsx'
 import Home from './pages/Home.jsx'
 import Kitchen from './pages/Kitchen.jsx'
@@ -12,6 +12,7 @@ import Recipe from './pages/Recipe.jsx'
 
 import Instructions from './pages/Instructions.jsx'
 import AddRecipe from './pages/AddRecipe.jsx'
+import EditRecipe from './pages/EditRecipe.jsx'
 import Calendar from './pages/Calendar.jsx'
 import Admin from './pages/Admin.jsx'
 import Loading from './components/Loading.jsx'
@@ -105,7 +106,7 @@ function App() {
       path: '/recipe/:id',
       element: user && user.id
       ? <Recipe></Recipe>
-      : <Login></Login>
+      : <Navigate to='/login'/> 
     },
     {
       path: '/addRecipe',
@@ -117,7 +118,7 @@ function App() {
       path: '/recipe/:id/instructions',
       element: user && user.id
       ? <Instructions></Instructions>
-      : <Login></Login>
+      : <Navigate to='/login'/>
     },
     {
       path: '/calendar',
@@ -131,6 +132,12 @@ function App() {
       ? <Admin></Admin>
       : <Login></Login>
     },
+    {
+      path: 'edit/recipe/:id',
+      element: user && user.id
+      ? <EditRecipe></EditRecipe>
+      : <Login></Login>
+    },
   ])
 
   return (
@@ -140,15 +147,6 @@ function App() {
       <Nav user={user}></Nav> : (!isLoginPage && checkingUser) ?
       <Loading></Loading> : <GuestNav></GuestNav>
       }
-      
-      {/* guest nav */}
-      {/* { !loggedIn && !isLoginPage && checkingUser && ( */}
-      {/*   <div style={guestBarStyle}> */}
-      {/*     <span style={{ fontWeight: 700 }}>EatRite</span> */}
-      {/*     <Link to="/login" style={guestLinkStyle}>Log in</Link> */}
-      {/*   </div> */}
-      {/* ) */}
-      {/* } */}
 
       {routes}
     </div>

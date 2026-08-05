@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import api from '../services/api.jsx'
 
 const API_URL = `${import.meta.env.VITE_API_URL}/api`
@@ -6,6 +7,12 @@ const API_URL = `${import.meta.env.VITE_API_URL}/api`
 const Admin = () => {
   const [recipes, setRecipes] = useState([])
   const [form, setForm] = useState({ title: '', description: '', instructions: '', image_url: '' })
+
+  const navigate = useNavigate()
+
+  const goToEdit = (id) => {
+    navigate(`/edit/recipe/${id}`)
+  }
 
   useEffect(() => {
     const load = async () => {
@@ -20,22 +27,22 @@ const Admin = () => {
     setRecipes(data || [])
   }
 
-  const handleChange = (event) => {
-    const { name, value } = event.target
-    setForm((prev) => ({ ...prev, [name]: value }))
-  }
+  // const handleChange = (event) => {
+  //   const { name, value } = event.target
+  //   setForm((prev) => ({ ...prev, [name]: value }))
+  // }
 
-  const handleCreate = async (event) => {
-    event.preventDefault()
-    await fetch(`${API_URL}/create/recipe`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify(form)
-    })
-    setForm({ title: '', description: '', instructions: '', image_url: '' })
-    refreshRecipes()
-  }
+  // const handleCreate = async (event) => {
+  //   event.preventDefault()
+  //   await fetch(`${API_URL}/create/recipe`, {
+  //     method: 'POST',
+  //     headers: { 'Content-Type': 'application/json' },
+  //     credentials: 'include',
+  //     body: JSON.stringify(form)
+  //   })
+  //   setForm({ title: '', description: '', instructions: '', image_url: '' })
+  //   refreshRecipes()
+  // }
 
   const handleDelete = async (id) => {
     await fetch(`${API_URL}/delete/recipe/${id}`, {
@@ -49,13 +56,13 @@ const Admin = () => {
     <div>
       <h1 style={styles.title}>Admin — Manage Recipes</h1>
 
-      <form style={styles.form} onSubmit={handleCreate}>
-        <input name="title" placeholder="Title" value={form.title} onChange={handleChange} style={styles.input} />
-        <input name="image_url" placeholder="Image URL" value={form.image_url} onChange={handleChange} style={styles.input} />
-        <input name="description" placeholder="Description" value={form.description} onChange={handleChange} style={styles.input} />
-        <textarea name="instructions" placeholder="Instructions" value={form.instructions} onChange={handleChange} style={styles.textarea} />
-        <button type="submit" style={styles.btn}>Create Recipe</button>
-      </form>
+      {/* <form style={styles.form} onSubmit={handleCreate}> */}
+      {/*   <input name="title" placeholder="Title" value={form.title} onChange={handleChange} style={styles.input} /> */}
+      {/*   <input name="image_url" placeholder="Image URL" value={form.image_url} onChange={handleChange} style={styles.input} /> */}
+      {/*   <input name="description" placeholder="Description" value={form.description} onChange={handleChange} style={styles.input} /> */}
+      {/*   <textarea name="instructions" placeholder="Instructions" value={form.instructions} onChange={handleChange} style={styles.textarea} /> */}
+      {/*   <button type="submit" style={styles.btn}>Create Recipe</button> */}
+      {/* </form> */}
 
       <table style={styles.table}>
         <thead>
@@ -71,7 +78,10 @@ const Admin = () => {
               <td style={styles.cell}>{r.title}</td>
               <td style={styles.cell}>{r.avg_rating}</td>
               <td style={styles.cell}>
-                <button style={styles.btn} onClick={() => handleDelete(r.id)}>Delete</button>
+                <div style={styles.btnBox}>
+                  <button style={styles.btn} onClick={() => handleDelete(r.id)}>Delete</button>
+                  <button style={styles.btn} onClick={() => goToEdit(r.id)}>Edit</button>
+                </div>
               </td>
             </tr>
           ))}
@@ -123,5 +133,9 @@ const styles = {
   cell: {
     border: '1px solid #ddd',
     padding: '12px',
+  },
+  btnBox: {
+    display: 'flex',
+    gap: 10,
   },
 }

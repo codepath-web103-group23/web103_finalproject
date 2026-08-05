@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import api from '../services/api.jsx'
 
 const units = [
@@ -13,32 +13,49 @@ const emptyDraft = {
   unit: ''
 }
 
-const AddRecipe = () => {
+const EditRecipe = () => {
   const [recipe, setRecipe] = useState({
     title: '',
     description: '',
     instructions: '',
     image_url: ''
   })
-
-  // every ingredient in the DB - fills the dropdown
   const [allIngredients, setAllIngredients] = useState([])
-  // the rows the user has added so far - these become recipe_ingredients
   const [rows, setRows] = useState([])
-  // the row currently being filled in, before it is added to `rows`
   const [draft, setDraft] = useState(emptyDraft)
   const [error, setError] = useState('')
+  const [newRows, setNewRows] = useState([])
 
   const navigate = useNavigate()
+  const { id } = useParams()
 
   useEffect(() => {
     const loadIngredients = async () => {
       const data = await api.getIngredients()
+      console.log(data)
       setAllIngredients(data ?? [])
     }
 
     loadIngredients()
   }, [])
+
+  useEffect(() => {
+    const loadRecipe = async () => {
+      const data = await api.getRecipe(id)
+      const ingredients = await api.getRecipeIngredients(id)
+
+      setRecipe({
+        title: data.title,
+        description: data.description,
+        instructions: data.instructions,
+        image_url: data.image_url
+      })
+
+      setRows(ingredients ?? [])
+    }
+
+    loadRecipe()
+  }, [id])
 
   const handleChange = (event) => {
     const { name, value } = event.target
@@ -60,14 +77,35 @@ const AddRecipe = () => {
     })
   }
 
+  // const addRow = () => {
+  //   if (!draft.ingredient_id) {
+  //     setError('Pick an ingredient before adding it.')
+  //     return
+  //   }
+  //
+  //   // spread into a NEW array - pushing would not re-render
+  //   setRows((prev) => [...prev, draft])
+  //   setNewRows((prev) => [...prev, draft])
+  //   
+  //   setDraft(emptyDraft)
+  //   setError('')
+  // }
+
   const addRow = () => {
     if (!draft.ingredient_id) {
       setError('Pick an ingredient before adding it.')
       return
     }
 
-    // spread into a NEW array - pushing would not re-render
-    setRows((prev) => [...prev, draft])
+    const newIngredient = {
+      ingredient_id: draft.ingredient_id,
+      quantity: draft.quantity || 1,
+      unit: draft.unit || 'unit'
+    }
+
+    setRows((prev) => [...prev, newIngredient])
+    setNewRows((prev) => [...prev, newIngredient])
+
     setDraft(emptyDraft)
     setError('')
   }
@@ -88,32 +126,32 @@ const AddRecipe = () => {
   const handleSubmit = async (event) => {
     event.preventDefault()
 
-    if (!recipe.title.trim()) {
-      setError('A recipe needs a title.')
-      return
+    console.log("newRows:", newRows)
+
+    await api.patchRecipe(id, recipe)
+
+    for (const row of newRows) {
+      console.log("sending:", {
+        recipe_id: id,
+        ingredient_id: row.ingredient_id,
+        quantity: row.quantity,
+        unit: row.unit
+      })
+
+      await api.createRecipeIngredient({
+        recipe_id: id,
+        ingredient_id: row.ingredient_id,
+        quantity: row.quantity,
+        unit: row.unit
+      })
     }
 
-    const options = {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      credentials: 'include',
-      body: JSON.stringify({ recipe, ingredients: rows })
-    }
-
-    const created = await api.createRecipe(options)
-
-    if (created && created.id) {
-      navigate(`/recipe/${created.id}`)
-    } else {
-      setError('Could not save the recipe. Check the server logs.')
-    }
+    navigate(`/recipe/${id}`)
   }
 
   return (
     <div>
-      <h1 style={styles.title}>Add Recipe</h1>
+      <h1 style={styles.title}>Edit Recipe</h1>
       <div style={styles.formContainer}>
         <form onSubmit={handleSubmit}>
 
@@ -241,7 +279,7 @@ const AddRecipe = () => {
   )
 }
 
-export default AddRecipe
+export default EditRecipe
 
 const styles = {
   title: {

@@ -37,6 +37,24 @@ const getRecipeIngredients = async (req, res) => {
   }
 }
 
+const patchRecipeIngredients = async (req, res) => {
+  try {
+    const data = await model.patchRecipeIngredients(req, res)
+    res.status(200).json(data)
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+}
+
+const createRecipeIngredient = async (req, res) => {
+  try {
+    const data = await model.createRecipeIngredient(req, res)
+    res.status(200).json(data)
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+}
+
 const updateRecipe = async (req, res) => {
   try {
     const result = await model.updateRecipe(req, res)
@@ -60,6 +78,8 @@ export default {
   getRecipes,
   getRecipe,
   getRecipeIngredients,
+  patchRecipeIngredients,
+  createRecipeIngredient, 
   updateRecipe,
   deleteRecipe,
 }
