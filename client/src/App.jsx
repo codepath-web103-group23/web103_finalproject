@@ -12,6 +12,7 @@ import Recipe from './pages/Recipe.jsx'
 
 import Instructions from './pages/Instructions.jsx'
 import AddRecipe from './pages/AddRecipe.jsx'
+import EditRecipe from './pages/EditRecipe.jsx'
 import Calendar from './pages/Calendar.jsx'
 import Admin from './pages/Admin.jsx'
 import Loading from './components/Loading.jsx'
@@ -131,6 +132,12 @@ function App() {
       ? <Admin></Admin>
       : <Login></Login>
     },
+    {
+      path: 'edit/recipe/:id',
+      element: user && user.id
+      ? <EditRecipe></EditRecipe>
+      : <Login></Login>
+    },
   ])
 
   return (
@@ -140,15 +147,6 @@ function App() {
       <Nav user={user}></Nav> : (!isLoginPage && checkingUser) ?
       <Loading></Loading> : <GuestNav></GuestNav>
       }
-      
-      {/* guest nav */}
-      {/* { !loggedIn && !isLoginPage && checkingUser && ( */}
-      {/*   <div style={guestBarStyle}> */}
-      {/*     <span style={{ fontWeight: 700 }}>EatRite</span> */}
-      {/*     <Link to="/login" style={guestLinkStyle}>Log in</Link> */}
-      {/*   </div> */}
-      {/* ) */}
-      {/* } */}
 
       {routes}
     </div>

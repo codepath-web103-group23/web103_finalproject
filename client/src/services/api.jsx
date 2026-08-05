@@ -114,9 +114,61 @@ const createRecipe = async (options) => {
   }
 }
 
+const patchRecipe = async (id, recipe) => {
+  try {
+    const response = await fetch(`${API_URL}/patch/recipe/${id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(recipe)
+    })
+
+    const data = await response.json()
+    return data
+  } catch (err) {
+    console.log(err)
+  }
+}
+
 const getRecipeIngredients = async (id) => {
   try {
     const response = await fetch(`${API_URL}/recipe/${id}/ingredients`)
+    const data = await response.json()
+    return data
+  } catch (err) {
+    console.log(err)
+  }
+}
+
+
+const patchRecipeIngredients = async (id, ingredients) => {
+  try {
+    const response = await fetch(`${API_URL}/patch/recipe/${id}/ingredients`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ ingredients })
+    })
+
+    const data = await response.json()
+    return data
+  } catch (err) {
+    console.log(err)
+  }
+}
+
+const createRecipeIngredient = async (recipeIngredient) => {
+  try {
+    const response = await fetch(`${API_URL}/create/recipe/ingredient`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(recipeIngredient)
+    })
+
     const data = await response.json()
     return data
   } catch (err) {
@@ -130,6 +182,7 @@ export default {
   getIngredient,
   editIngredient,
   updateIngredient,
+  createRecipeIngredient, 
 
   getKitchen,
   addToKitchen,
@@ -138,5 +191,7 @@ export default {
   getRecipes,
   getRecipe,
   getRecipeIngredients,
-  createRecipe
+  patchRecipeIngredients, 
+  createRecipe,
+  patchRecipe,
 }
