@@ -8,14 +8,14 @@ const Login = () => {
   return (
     <div style={styles.screen}>
       <div style={styles.panel}>
-        <Link to="/" style={styles.brand}>
-          <span aria-hidden="true" style={styles.mark}>🥗</span>
-          EatRite
-        </Link>
+        {/* Four elements, not six: mark, one line of copy, the action, one way
+            out. The wordmark, a separate "Welcome back" heading and a privacy
+            footnote all said the same thing the button already says. */}
+        <span aria-hidden="true" style={styles.mark}>🥗</span>
 
-        <h1 style={styles.title}>Welcome back</h1>
+        <h1 style={styles.title}>Sign in to EatRite</h1>
         <p style={styles.subtitle}>
-          Sign in to track your kitchen, save favorites, and plan your week.
+          Track your kitchen, save favorites, and plan your week.
         </p>
 
         <button type="button" onClick={auth.login} className="btn" style={styles.githubBtn}>
@@ -23,12 +23,8 @@ const Login = () => {
           Continue with GitHub
         </button>
 
-        <p style={styles.footnote}>
-          We only use your GitHub account to identify you — nothing is posted on your behalf.
-        </p>
-
         <Link to="/" style={styles.backLink}>
-          Browse recipes without signing in
+          Browse without signing in
         </Link>
       </div>
     </div>
@@ -49,37 +45,28 @@ const styles = {
   panel: {
     ...card,
     width: '100%',
-    maxWidth: '420px',
-    padding: space.xl,
+    maxWidth: '400px',
+    padding: `${space.xxl} ${space.xl}`,
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
     textAlign: 'center',
   },
-  brand: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: space.sm,
-    marginBottom: space.xl,
-    fontSize: font.size.xl,
-    fontWeight: font.weight.bold,
-    letterSpacing: '-0.5px',
-    color: colors.ink,
-    textDecoration: 'none',
-  },
   mark: {
-    fontSize: '26px',
+    fontSize: '44px',
     lineHeight: 1,
+    marginBottom: space.lg,
   },
   title: {
     ...heading.h2,
-    marginBottom: space.xs,
+    marginBottom: space.sm,
   },
   subtitle: {
-    margin: `0 0 ${space.xl}`,
+    margin: `0 0 ${space.xxl}`,
     fontSize: font.size.sm,
+    lineHeight: 1.6,
     color: colors.textMuted,
-    maxWidth: '34ch',
+    maxWidth: '30ch',
   },
   githubBtn: {
     ...button.primary,
@@ -92,14 +79,8 @@ const styles = {
     // matches the black-and-white palette.
     filter: 'grayscale(1) brightness(4)',
   },
-  footnote: {
-    margin: `${space.md} 0 0`,
-    fontSize: font.size.xs,
-    color: colors.textFaint,
-    maxWidth: '36ch',
-  },
   backLink: {
-    marginTop: space.xl,
+    marginTop: space.lg,
     fontSize: font.size.sm,
     color: colors.textMuted,
   },
