@@ -9,6 +9,9 @@ import Login from './pages/Login.jsx'
 import Profile from './pages/Profile.jsx'
 import EditPreferences from './pages/EditPreferences.jsx'
 import Recipe from './pages/Recipe.jsx'
+
+import Instructions from './pages/Instructions.jsx'
+import AddRecipe from './pages/AddRecipe.jsx'
 import Calendar from './pages/Calendar.jsx'
 import Admin from './pages/Admin.jsx'
 import Loading from './components/Loading.jsx'
@@ -102,6 +105,18 @@ function App() {
       path: '/recipe/:id',
       element: user && user.id
       ? <Recipe></Recipe>
+      : <Login></Login>
+    },
+    {
+      path: '/addRecipe',
+      element: user && user.id
+      ? <AddRecipe user={user} />
+      : <Login api_url={API_URL} />
+    },
+    {
+      path: '/recipe/:id/instructions',
+      element: user && user.id
+      ? <Instructions></Instructions>
       : <Login></Login>
     },
     {
