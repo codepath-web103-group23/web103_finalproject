@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import api from '../services/api.jsx'
 import scheduledMealsApi from '../services/scheduledMealsApi.js'
 import leftC from '../assets/left-caret.png'
@@ -14,6 +15,7 @@ const Calendar = () => {
   const [meals, setMeals] = useState([])
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({ recipe_id: '', meal_type: mealTypes[0] })
+  const navigate = useNavigate()
 
   useEffect(() => {
     const load = async () => {
@@ -73,11 +75,19 @@ const Calendar = () => {
     setMeals((prev) => prev.filter((m) => m.id !== id))
   }
   
+  // const handleMealDay = (cellDate, recipe_id) => {
+  //   setSelectedDate(cellDate)
+  //   if (recipe_id) {
+  //     window.location.href = `/recipe/${recipe_id}`
+  //     console.log(recipe_id)
+  //   }
+  // }
+
   const handleMealDay = (cellDate, recipe_id) => {
     setSelectedDate(cellDate)
+
     if (recipe_id) {
-      window.location.href = `/recipe/${recipe_id}`
-      console.log(recipe_id)
+      navigate(`/recipe/${recipe_id}`)
     }
   }
 
