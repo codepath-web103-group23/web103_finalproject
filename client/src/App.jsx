@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useRoutes, Link, useLocation } from 'react-router-dom'
+import { useRoutes, Link, useLocation, Navigate } from 'react-router-dom'
 import Nav from './components/Nav.jsx'
 import Home from './pages/Home.jsx'
 import Kitchen from './pages/Kitchen.jsx'
@@ -117,7 +117,7 @@ function App() {
       path: '/recipe/:id/instructions',
       element: user && user.id
       ? <Instructions></Instructions>
-      : <Login></Login>
+      : <Navigate to='/login'/>
     },
     {
       path: '/calendar',

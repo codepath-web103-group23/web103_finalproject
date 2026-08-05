@@ -1,25 +1,3 @@
-// <<<<<<< HEAD
-// import { Link } from 'react-router-dom'
-//
-// function Card ({id, title, image_url, avg_rating, isFavorited, onToggle}) {
-// =======
-// import { Link, useNavigate } from 'react-router-dom'
-// import heart from '../assets/heart.png'
-// import favoritesApi from '../services/favoritesApi.js'
-//
-// function Card ({id, title, stars, image_url, avg_rating, loggedIn}) {
-//   const navigate = useNavigate()
-//
-//   const createFavorite = (recipe_id) => {
-//     if (!loggedIn) {
-//       navigate('/login')
-//       return
-//     }
-//     favoritesApi.createFavorite(recipe_id)
-//   }
-// >>>>>>> origin/main
-
-
 import { Link, useNavigate } from 'react-router-dom'
 import heart from '../assets/heart.png'
 import favoritesApi from '../services/favoritesApi.js'
@@ -76,7 +54,7 @@ export default Card;
 const styles = {
   container: {
     width: '240px',
-    height: '250px',
+    minHeight: '250px',
     border: 'solid black',
     borderRadius: '10px',
     margin: '0 auto',
@@ -132,7 +110,11 @@ const styles = {
   stepsLink: {
     fontSize: '16px',
     color: 'black',
-    textDecoration: 'underline',
+    textDecoration: 'none',
+    border: '1px solid black',
+    padding: '4px',
+    borderRadius: '5px',
+    // textDecoration: 'underline',
   },
   heart: {
     width: "24px",
