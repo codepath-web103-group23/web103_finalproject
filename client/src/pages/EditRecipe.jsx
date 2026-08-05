@@ -1,9 +1,24 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import api from '../services/api.jsx'
+import Loading from '../components/Loading.jsx'
+import { useToast } from '../components/Toast.jsx'
+import {
+  Field,
+  Form,
+  FormActions,
+  FormError,
+  FormPage,
+  SecondaryButton,
+  Select,
+  SubmitButton,
+  TextArea,
+  TextInput,
+} from '../components/Form.jsx'
+import { button, colors, font, radius, space } from '../styles/theme.js'
 
 const units = [
-  'unit', 'g', 'kg', 'oz', 'lb', 'cup', 'cups', 'tbsp', 'tsp',
+  'g', 'kg', 'oz', 'lb', 'cup', 'cups', 'tbsp', 'tsp',
   'ml', 'l', 'whole', 'cloves', 'slices', 'can', 'pinch'
 ]
 
@@ -23,17 +38,27 @@ const EditRecipe = () => {
   const [allIngredients, setAllIngredients] = useState([])
   const [rows, setRows] = useState([])
   const [draft, setDraft] = useState(emptyDraft)
-  const [error, setError] = useState('')
+  // Rows added in this session — only these get POSTed on save; the ones that
+  // came back from the server are already in recipe_ingredients.
   const [newRows, setNewRows] = useState([])
+
+  const [loading, setLoading] = useState(true)
+  const [errors, setErrors] = useState({})
+  const [formError, setFormError] = useState(null)
+  const [submitting, setSubmitting] = useState(false)
 
   const navigate = useNavigate()
   const { id } = useParams()
+  const toast = useToast()
 
   useEffect(() => {
     const loadIngredients = async () => {
-      const data = await api.getIngredients()
-      console.log(data)
-      setAllIngredients(data ?? [])
+      try {
+        const data = await api.getIngredients()
+        setAllIngredients(Array.isArray(data) ? data : [])
+      } catch (err) {
+        toast.error("Couldn't load the ingredient list.")
+      }
     }
 
     loadIngredients()
@@ -41,17 +66,24 @@ const EditRecipe = () => {
 
   useEffect(() => {
     const loadRecipe = async () => {
-      const data = await api.getRecipe(id)
-      const ingredients = await api.getRecipeIngredients(id)
+      setLoading(true)
+      try {
+        const data = await api.getRecipe(id)
+        const ingredients = await api.getRecipeIngredients(id)
 
-      setRecipe({
-        title: data.title,
-        description: data.description,
-        instructions: data.instructions,
-        image_url: data.image_url
-      })
+        setRecipe({
+          title: data.title ?? '',
+          description: data.description ?? '',
+          instructions: data.instructions ?? '',
+          image_url: data.image_url ?? ''
+        })
 
-      setRows(ingredients ?? [])
+        setRows(Array.isArray(ingredients) ? ingredients : [])
+      } catch (err) {
+        setFormError(err.message)
+      } finally {
+        setLoading(false)
+      }
     }
 
     loadRecipe()
@@ -59,41 +91,23 @@ const EditRecipe = () => {
 
   const handleChange = (event) => {
     const { name, value } = event.target
-    setRecipe((prev) => {
-      return {
-        ...prev,
-        [name]: value
-      }
-    })
+    setRecipe((prev) => ({ ...prev, [name]: value }))
+    setErrors((prev) => (prev[name] ? { ...prev, [name]: undefined } : prev))
   }
 
   const handleDraftChange = (event) => {
     const { name, value } = event.target
-    setDraft((prev) => {
-      return {
-        ...prev,
-        [name]: value
-      }
-    })
+    setDraft((prev) => ({ ...prev, [name]: value }))
+    setErrors((prev) => (prev.draft ? { ...prev, draft: undefined } : prev))
   }
-
-  // const addRow = () => {
-  //   if (!draft.ingredient_id) {
-  //     setError('Pick an ingredient before adding it.')
-  //     return
-  //   }
-  //
-  //   // spread into a NEW array - pushing would not re-render
-  //   setRows((prev) => [...prev, draft])
-  //   setNewRows((prev) => [...prev, draft])
-  //   
-  //   setDraft(emptyDraft)
-  //   setError('')
-  // }
 
   const addRow = () => {
     if (!draft.ingredient_id) {
-      setError('Pick an ingredient before adding it.')
+      setErrors((prev) => ({ ...prev, draft: 'Pick an ingredient before adding it.' }))
+      return
+    }
+    if (rows.some((r) => String(r.ingredient_id) === String(draft.ingredient_id))) {
+      setErrors((prev) => ({ ...prev, draft: 'That ingredient is already on the list.' }))
       return
     }
 
@@ -107,7 +121,7 @@ const EditRecipe = () => {
     setNewRows((prev) => [...prev, newIngredient])
 
     setDraft(emptyDraft)
-    setError('')
+    setErrors((prev) => ({ ...prev, draft: undefined }))
   }
 
   const removeRow = (index) => {
@@ -119,324 +133,288 @@ const EditRecipe = () => {
     return match ? match.name : 'Unknown ingredient'
   }
 
-  const handleCancel = () => {
-    navigate('/kitchen')
+  const validate = () => {
+    const next = {}
+    if (!recipe.title.trim()) next.title = 'A recipe needs a title.'
+    if (!recipe.instructions.trim()) next.instructions = 'Add at least one step.'
+    if (recipe.image_url.trim() && !/^https?:\/\//i.test(recipe.image_url.trim())) {
+      next.image_url = 'Image URL must start with http:// or https://'
+    }
+    return next
   }
 
   const handleSubmit = async (event) => {
     event.preventDefault()
+    setFormError(null)
 
-    console.log("newRows:", newRows)
-
-    await api.patchRecipe(id, recipe)
-
-    for (const row of newRows) {
-      console.log("sending:", {
-        recipe_id: id,
-        ingredient_id: row.ingredient_id,
-        quantity: row.quantity,
-        unit: row.unit
-      })
-
-      await api.createRecipeIngredient({
-        recipe_id: id,
-        ingredient_id: row.ingredient_id,
-        quantity: row.quantity,
-        unit: row.unit
-      })
+    const found = validate()
+    setErrors((prev) => ({ ...prev, ...found }))
+    if (Object.keys(found).length > 0) {
+      toast.error('Please fix the highlighted fields.')
+      return
     }
 
-    navigate(`/recipe/${id}`)
+    setSubmitting(true)
+    try {
+      await api.patchRecipe(id, recipe)
+
+      for (const row of newRows) {
+        await api.createRecipeIngredient({
+          recipe_id: id,
+          ingredient_id: row.ingredient_id,
+          quantity: row.quantity,
+          unit: row.unit
+        })
+      }
+
+      toast.success('Recipe updated')
+      navigate(`/recipe/${id}`)
+    } catch (err) {
+      setFormError(err.message)
+      toast.error("Couldn't save your changes.")
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  if (loading) {
+    return <Loading label="Loading recipe…" size="lg" />
   }
 
   return (
-    <div>
-      <h1 style={styles.title}>Edit Recipe</h1>
-      <div style={styles.formContainer}>
-        <form onSubmit={handleSubmit}>
+    <FormPage title="Edit recipe" subtitle="Update the details or add more ingredients.">
+      <Form onSubmit={handleSubmit}>
+        <FormError message={formError} />
 
-          <label htmlFor="title">Recipe Title:</label>
-          <input
-            id='title'
-            name='title'
+        <Field id="title" label="Recipe title" error={errors.title} required>
+          <TextInput
+            id="title"
+            name="title"
             type="text"
             value={recipe.title}
             onChange={handleChange}
-            style={styles.input}
+            disabled={submitting}
+            error={errors.title}
           />
-          <br />
+        </Field>
 
-          <label htmlFor="image_url">Image URL:</label>
-          <input
-            id='image_url'
-            name='image_url'
-            type="text"
+        <Field id="image_url" label="Image URL" error={errors.image_url}>
+          <TextInput
+            id="image_url"
+            name="image_url"
+            type="url"
+            placeholder="https://…"
             value={recipe.image_url}
             onChange={handleChange}
-            style={styles.wideInput}
+            disabled={submitting}
+            error={errors.image_url}
           />
-          <br />
+        </Field>
 
-          <label htmlFor="description">Description:</label>
-          <textarea
-            id='description'
-            name='description'
+        <Field id="description" label="Description">
+          <TextArea
+            id="description"
+            name="description"
             value={recipe.description}
             onChange={handleChange}
-            style={styles.shortText}
+            disabled={submitting}
+            style={{ minHeight: '90px' }}
           />
-          <br />
+        </Field>
 
-          <label htmlFor="instructions">Instructions (one step per line):</label>
-          <textarea
-            id='instructions'
-            name='instructions'
+        <Field
+          id="instructions"
+          label="Instructions"
+          hint="One step per line."
+          error={errors.instructions}
+          required
+        >
+          <TextArea
+            id="instructions"
+            name="instructions"
             value={recipe.instructions}
             onChange={handleChange}
-            style={styles.textInput}
+            disabled={submitting}
+            error={errors.instructions}
+            style={{ minHeight: '200px' }}
           />
+        </Field>
 
-          <hr style={styles.divider} />
-
-          <label style={styles.sectionTitle}>Ingredients</label>
+        <div style={styles.section}>
+          <h2 style={styles.sectionTitle}>Ingredients</h2>
 
           <div style={styles.draftRow}>
-            <select
-              id='ingredient_id'
-              name='ingredient_id'
+            <Select
+              id="ingredient_id"
+              name="ingredient_id"
               value={draft.ingredient_id}
               onChange={handleDraftChange}
-              style={styles.select}
+              disabled={submitting}
+              style={styles.ingredientSelect}
+              aria-label="Ingredient"
             >
-              <option value=''>-- pick an ingredient --</option>
+              <option value="">Pick an ingredient…</option>
               {allIngredients.map((ingredient) => (
                 <option key={ingredient.id} value={ingredient.id}>
                   {ingredient.name}
                 </option>
               ))}
-            </select>
+            </Select>
 
-            <input
-              id='quantity'
-              name='quantity'
+            <TextInput
+              id="quantity"
+              name="quantity"
               type="number"
               min="0"
               step="0.01"
-              placeholder="qty"
+              placeholder="Qty"
               value={draft.quantity}
               onChange={handleDraftChange}
+              disabled={submitting}
               style={styles.qtyInput}
+              aria-label="Quantity"
             />
 
-            <select
-              id='unit'
-              name='unit'
+            <Select
+              id="unit"
+              name="unit"
               value={draft.unit}
               onChange={handleDraftChange}
+              disabled={submitting}
               style={styles.unitSelect}
+              aria-label="Unit"
             >
-              <option value=''>unit</option>
+              <option value="">Unit</option>
               {units.map((unit) => (
                 <option key={unit} value={unit}>{unit}</option>
               ))}
-            </select>
+            </Select>
 
-            <button type="button" onClick={addRow} style={styles.addRowBtn}>
+            <button
+              type="button"
+              className="btn"
+              onClick={addRow}
+              disabled={submitting}
+              style={styles.addRowBtn}
+            >
               Add
             </button>
           </div>
 
+          {errors.draft && (
+            <p style={styles.draftError} role="alert">{errors.draft}</p>
+          )}
+
           <div style={styles.rowList}>
-            {rows.length === 0 && (
-              <p style={styles.empty}>No ingredients added yet.</p>
+            {rows.length === 0 ? (
+              <p style={styles.empty}>No ingredients on this recipe yet.</p>
+            ) : (
+              rows.map((row, index) => (
+                <div key={index} style={styles.row}>
+                  <span style={styles.rowName}>{row.name ?? nameFor(row.ingredient_id)}</span>
+                  <span style={styles.rowAmount}>
+                    {row.quantity} {row.unit}
+                  </span>
+                  <button
+                    type="button"
+                    className="btn btn-ghost"
+                    onClick={() => removeRow(index)}
+                    disabled={submitting}
+                    style={styles.removeBtn}
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))
             )}
-            {rows.map((row, index) => (
-              <div key={index} style={styles.row}>
-                <span>{nameFor(row.ingredient_id)}</span>
-                <span style={styles.rowAmount}>
-                  {row.quantity} {row.unit}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => removeRow(index)}
-                  style={styles.removeBtn}
-                >
-                  Remove
-                </button>
-              </div>
-            ))}
           </div>
+        </div>
 
-          {error && <p style={styles.error}>{error}</p>}
-
-          <div style={styles.btnBox}>
-            <button type="submit" style={styles.btn1}>Save</button>
-            <button type="button" style={styles.btn2} onClick={handleCancel}>Cancel</button>
-          </div>
-        </form>
-      </div>
-    </div>
+        <FormActions>
+          <SubmitButton submitting={submitting}>Save changes</SubmitButton>
+          <SecondaryButton onClick={() => navigate(`/recipe/${id}`)} disabled={submitting}>
+            Cancel
+          </SecondaryButton>
+        </FormActions>
+      </Form>
+    </FormPage>
   )
 }
 
 export default EditRecipe
 
 const styles = {
-  title: {
-    display: 'block',
-    fontSize: '30',
-    marginBottom: '1px',
-  },
-  formContainer: {
-    border: 'solid black',
-    backgroundColor: '#fafafa',
-    borderRadius: '15px',
-    display: 'flex',
-    padding: '20px',
-    fontWeight: 'bold',
-    width: '700px',
-    marginTop: '0px',
-  },
-  input: {
-    display: 'block',
-    width: '300px',
-    height: '30px',
-    borderRadius: '5px',
-  },
-  wideInput: {
-    display: 'block',
-    width: '600px',
-    height: '30px',
-    borderRadius: '5px',
-  },
-  shortText: {
-    display: 'block',
-    width: '600px',
-    height: '80px',
-    borderRadius: '5px',
-  },
-  textInput: {
-    display: 'block',
-    width: '600px',
-    height: '180px',
-    borderRadius: '5px',
-  },
-  divider: {
-    marginTop: '20px',
-    marginBottom: '15px',
+  section: {
+    paddingTop: space.md,
+    borderTop: `1px solid ${colors.border}`,
   },
   sectionTitle: {
-    display: 'block',
-    fontSize: '20px',
-    marginBottom: '10px',
+    margin: `0 0 ${space.md}`,
+    fontSize: font.size.lg,
+    fontWeight: font.weight.semibold,
   },
   draftRow: {
     display: 'flex',
-    gap: '10px',
-    alignItems: 'center',
     flexWrap: 'wrap',
+    gap: space.sm,
+    alignItems: 'center',
   },
-  select: {
-    width: '240px',
-    height: '32px',
-    borderRadius: '5px',
+  ingredientSelect: {
+    flex: '2 1 200px',
+    width: 'auto',
   },
   qtyInput: {
-    width: '90px',
-    height: '30px',
-    borderRadius: '5px',
+    flex: '0 1 100px',
+    width: 'auto',
   },
   unitSelect: {
-    width: '110px',
-    height: '32px',
-    borderRadius: '5px',
+    flex: '0 1 120px',
+    width: 'auto',
   },
   addRowBtn: {
-    cursor: 'pointer',
-    height: '34px',
-    padding: '0 18px',
-    fontWeight: 'bold',
-    backgroundColor: '#333333',
-    color: 'white',
-    border: 'solid black',
-    borderWidth: '1px',
-    borderRadius: '5px',
+    ...button.secondary,
+  },
+  draftError: {
+    margin: `${space.sm} 0 0`,
+    fontSize: font.size.xs,
+    fontWeight: font.weight.semibold,
+    color: colors.ink,
   },
   rowList: {
+    marginTop: space.md,
     display: 'flex',
     flexDirection: 'column',
-    marginTop: '15px',
-    width: '600px',
+    gap: space.xs,
   },
   row: {
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: '10px',
-    padding: '8px 4px',
-    borderBottom: '1px solid #ddd',
-    fontWeight: 'normal',
+    gap: space.sm,
+    padding: `${space.sm} ${space.md}`,
+    background: colors.surfaceAlt,
+    border: `1px solid ${colors.border}`,
+    borderRadius: radius.md,
+    fontSize: font.size.sm,
+  },
+  rowName: {
+    flex: 1,
+    fontWeight: font.weight.semibold,
   },
   rowAmount: {
-    marginLeft: 'auto',
-    marginRight: '15px',
-    fontWeight: 'bold',
+    color: colors.textMuted,
   },
   removeBtn: {
-    cursor: 'pointer',
-    border: 'solid black',
-    borderWidth: '1px',
-    borderRadius: '5px',
-    background: 'none',
-    padding: '4px 10px',
+    ...button.ghost,
+    ...button.small,
+    textDecoration: 'underline',
   },
   empty: {
-    fontWeight: 'normal',
-    color: '#666',
-  },
-  error: {
-    color: '#d92d3c',
-    marginTop: '15px',
-  },
-  btnBox: {
-    display: 'flex',
-    gap: '10px',
-  },
-  btn1: {
-    cursor: 'pointer',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: '150px',
-    height: '50px',
-    fontSize: '15px',
-    fontWeight: 'bold',
-    backgroundColor: '#333333',
-    color: 'white',
-    border: 'solid black',
-    padding: '20px',
-    borderRadius: '5px',
-    borderWidth: '1px',
-    textDecoration: 'none',
-    marginTop: '20px',
-    marginRight: '20px',
-  },
-  btn2: {
-    cursor: 'pointer',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: '150px',
-    height: '50px',
-    fontSize: '15px',
-    fontWeight: 'bold',
-    color: 'black',
-    border: 'solid black',
-    padding: '20px',
-    borderRadius: '5px',
-    borderWidth: '1px',
-    textDecoration: 'none',
-    marginTop: '20px',
-    marginRight: '20px',
+    margin: 0,
+    padding: `${space.md}`,
+    fontSize: font.size.sm,
+    color: colors.textFaint,
+    border: `1px dashed ${colors.borderStrong}`,
+    borderRadius: radius.md,
+    textAlign: 'center',
   },
 }

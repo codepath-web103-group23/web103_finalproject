@@ -1,27 +1,39 @@
-import react from 'react'
+import { useState } from 'react'
 import preferenceApi from '../services/preferenceApi.js'
-
+import { useToast } from './Toast.jsx'
+import { button, colors, font, radius, space } from '../styles/theme.js'
 
 const PrefItem = ({ id, preference, delRefresh, delModalRefresh }) => {
+  const [deleting, setDeleting] = useState(false)
+  const toast = useToast()
 
-  const deletePreference = (id) => {
-
-    preferenceApi.deletePreference(id)
-    delRefresh(id, 'pref')
-    delModalRefresh(id)
+  const deletePreference = async () => {
+    setDeleting(true)
+    try {
+      await preferenceApi.deletePreference(id)
+      delRefresh(id, 'pref')
+      delModalRefresh(id)
+      toast.success(`Removed "${preference}"`)
+    } catch (err) {
+      toast.error("Couldn't remove that preference.")
+      setDeleting(false)
+    }
   }
 
   return (
-    <>
-      <div style={styles.prefItem}>
-        <div key={id} style={styles.itemPref}>{preference}</div>
-        <button
-          style={styles.btn}
-          onClick={() => deletePreference(id)}
-        >Delete</button>
-      </div>
-      <hr style={styles.hr}/>
-    </>
+    <li style={styles.prefItem}>
+      <span style={styles.chip}>{preference}</span>
+      <button
+        type="button"
+        className="btn btn-ghost"
+        style={styles.btn}
+        onClick={deletePreference}
+        disabled={deleting}
+        aria-label={`Remove ${preference}`}
+      >
+        {deleting ? 'Removing…' : 'Remove'}
+      </button>
+    </li>
   )
 }
 
@@ -32,39 +44,22 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    fontSize: '20px',
-    margin: '10px',
-    width: '100%',
+    gap: space.md,
+    padding: `${space.sm} 0`,
+    borderBottom: `1px solid ${colors.border}`,
   },
-  hr: {
-    border: 'none',
-    borderTop: '1px solid black',
-    width: '98%',
-  },
-  itemPref: {
-    textAlign: 'center',
-    border: 'solid black',
-    borderRadius: '15px',
-    borderWidth: '1px',
-    width: '125px',
-    height: '30px',
-    backgroundColor: '#dcdcdc',
-  },
-  itemTxt: {
-    display: 'block',
+  chip: {
+    display: 'inline-block',
+    padding: `${space.xs} ${space.md}`,
+    background: colors.surfaceAlt,
+    border: `1px solid ${colors.border}`,
+    borderRadius: radius.pill,
+    fontSize: font.size.sm,
+    fontWeight: font.weight.medium,
   },
   btn: {
-    textDecoration: 'none',
-    color: 'black',
-    cursor: 'pointer',
-    height: '40px',
-    width: '100px',
-    border: 'solid black',
-    borderRadius: '5px',
-    borderWidth:'1px',
-    padding: '10px',
-    borderColor: 'red',
-  }
+    ...button.ghost,
+    ...button.small,
+    textDecoration: 'underline',
+  },
 }
-
-

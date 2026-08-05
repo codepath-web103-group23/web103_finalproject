@@ -1,158 +1,169 @@
 import { useState, useEffect } from 'react'
-// import userApi from '../services/userApi.jsx'
 import preferenceApi from '../services/preferenceApi.js'
 import PrefItem from '../components/PrefItem.jsx'
+import Modal from '../components/Modal.jsx'
+import Loading from '../components/Loading.jsx'
+import { useToast } from '../components/Toast.jsx'
+import { button, colors, font, input, radius, space } from '../styles/theme.js'
 
-const EditPreferences = ({ toggle, delRefresh, inRefresh}) => {
-  const [preferences, setPreferences] = useState([]) 
-  const [newPref, setNewPref] = useState({ preference: ''})
+const EditPreferences = ({ toggle, delRefresh, inRefresh }) => {
+  const [preferences, setPreferences] = useState([])
+  const [newPref, setNewPref] = useState({ preference: '' })
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState(null)
+  const toast = useToast()
 
   const handleChange = (event) => {
     const { name, value } = event.target
-
-    setNewPref( (prev) => {
-      return {
-        ...prev,
-        [name]:value,
-      }
-    })
+    setNewPref((prev) => ({ ...prev, [name]: value }))
+    setError(null)
   }
 
   const handleModalDeleteRefresh = (id) => {
-    setPreferences(prev =>
-      prev.filter(preference => preference.id !== id)
-    )
-    console.log('delete modal refreshing')
+    setPreferences(prev => prev.filter(preference => preference.id !== id))
   }
 
   useEffect(() => {
     const fetchPreference = async () => {
-      const data = await preferenceApi.getPreferences()
-      setPreferences(data)
+      try {
+        const data = await preferenceApi.getPreferences()
+        setPreferences(Array.isArray(data) ? data : [])
+      } catch (err) {
+        toast.error("Couldn't load your preferences.")
+      } finally {
+        setLoading(false)
+      }
     }
     fetchPreference()
   }, [])
 
-  const createPreference = (event) => {
+  const createPreference = async (event) => {
     event.preventDefault()
 
-    preferenceApi.createPreference(newPref)
-    setPreferences(prev => [
-      ...prev,
-      newPref
-    ])
-    inRefresh(newPref)
+    const value = newPref.preference.trim()
+    if (!value) {
+      setError('Type a preference first.')
+      return
+    }
+    if (preferences.some((p) => p.preference?.toLowerCase() === value.toLowerCase())) {
+      setError('You already have that preference.')
+      return
+    }
+
+    setSaving(true)
+    try {
+      // Use whatever the server returns so the new row carries a real id —
+      // the optimistic copy had none, so it couldn't be deleted without a
+      // page refresh.
+      const created = await preferenceApi.createPreference({ preference: value })
+      const saved = created?.id ? created : { preference: value }
+
+      setPreferences(prev => [...prev, saved])
+      inRefresh(saved)
+      setNewPref({ preference: '' })
+      toast.success(`Added "${value}"`)
+    } catch (err) {
+      setError(err.message)
+      toast.error("Couldn't add that preference.")
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
-    <div style={styles.editPicker}>
-      <h1 style={styles.title}>Preferences</h1>
-      <div style={styles.prefBox}>
-        {preferences.map((p) => (
-          <PrefItem
-            key={p.id}
-            id={p.id}
-            preference={p.preference}
-            onChange={handleChange}
-            delRefresh={delRefresh}
-            delModalRefresh={handleModalDeleteRefresh}
-          ></PrefItem>
-        ))}
-      </div>
-      <div style={styles.bottomBox}>
-        <div style={styles.addBox}>
-          <input 
-            style={styles.input}
-            name='preference'
-            value={newPref.preference}
-            onChange={handleChange}
-          />
-          <button 
-            type="submit"
-            style={styles.addBtn}
-            onClick={createPreference}
-          >Add</button>
-        </div>
-        <button onClick={toggle} style={styles.btn}>Exit</button>
-      </div>
-    </div>
+    <Modal title="Dietary preferences" onClose={toggle}>
+      {loading ? (
+        <Loading label="Loading preferences…" />
+      ) : (
+        <>
+          {preferences.length === 0 ? (
+            <p style={styles.empty}>No preferences yet. Add one below.</p>
+          ) : (
+            <ul style={styles.prefBox}>
+              {preferences.map((p) => (
+                <PrefItem
+                  key={p.id}
+                  id={p.id}
+                  preference={p.preference}
+                  delRefresh={delRefresh}
+                  delModalRefresh={handleModalDeleteRefresh}
+                />
+              ))}
+            </ul>
+          )}
+
+          <form style={styles.addBox} onSubmit={createPreference} noValidate>
+            <label htmlFor="preference" style={styles.srOnly}>New preference</label>
+            <input
+              id="preference"
+              className="input"
+              style={styles.input}
+              name="preference"
+              placeholder="e.g. vegetarian, gluten-free"
+              value={newPref.preference}
+              onChange={handleChange}
+              disabled={saving}
+            />
+            <button type="submit" className="btn" style={styles.addBtn} disabled={saving}>
+              {saving ? 'Adding…' : 'Add'}
+            </button>
+          </form>
+
+          {error && <p style={styles.error} role="alert">{error}</p>}
+        </>
+      )}
+    </Modal>
   )
 }
 
 export default EditPreferences
 
 const styles = {
-  title: {
-    // marginLeft: '20px',
-    textAlign: 'center',
+  prefBox: {
+    listStyle: 'none',
+    margin: `0 0 ${space.lg}`,
+    padding: 0,
+    display: 'flex',
+    flexDirection: 'column',
   },
   addBox: {
     display: 'flex',
     alignItems: 'center',
-    gap: 10,
-    // border: 'solid black',
+    gap: space.sm,
   },
   input: {
-    display: 'block',
-    width: '100px',
-    height: '35px',
-  },
-  editPicker: {
-    // margin: '0 auto',
-    position: 'absolute',
-    // padding: '30px',
-    width: '80%',
-    top: '5%',
-    left: '10%',
-    border: 'solid black',
-    borderRadius: '15px',
-    borderWidth: '1px',
-    backgroundColor: '#f3f3f3',
-  },
-  bottomBox: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '100%',
-    padding: '20px',
-    boxSizing: 'border-box',
-    // border: 'solid black',
-    // paddingLeft: '10px',
-    // paddingRight: '10px',
-  },
-  prefBox: {
-    display:'flex',
-    flexWrap: 'wrap',
-    margin: '10px',
-    zIndex: '100',
+    ...input,
+    flex: 1,
   },
   addBtn: {
-    fontSize:'15px',
-    textDecoration: 'none',
-    color: 'black',
-    cursor: 'pointer',
-    height: '35px',
-    width: '55px',
-    alignText: 'center',
-    border: 'solid black',
-    borderRadius: '5px',
-    borderWidth:'1px',
-    padding: '10px',
+    ...button.primary,
   },
-  btn: {
-    fontSize:'15px',
-    // marginRight: '25px',
-    // marginTop: '25px',
-    textDecoration: 'none',
-    color: 'black',
-    cursor: 'pointer',
-    height: '35px',
-    width: '55px',
-    alignText: 'center',
-    border: 'solid black',
-    borderRadius: '5px',
-    borderWidth:'1px',
-    padding: '10px',
-
+  error: {
+    margin: `${space.sm} 0 0`,
+    fontSize: font.size.xs,
+    fontWeight: font.weight.semibold,
+    color: colors.ink,
+  },
+  empty: {
+    margin: `0 0 ${space.lg}`,
+    padding: space.md,
+    fontSize: font.size.sm,
+    color: colors.textFaint,
+    border: `1px dashed ${colors.borderStrong}`,
+    borderRadius: radius.md,
+    textAlign: 'center',
+  },
+  // Visually hidden but still announced by screen readers.
+  srOnly: {
+    position: 'absolute',
+    width: '1px',
+    height: '1px',
+    padding: 0,
+    margin: '-1px',
+    overflow: 'hidden',
+    clip: 'rect(0, 0, 0, 0)',
+    whiteSpace: 'nowrap',
+    border: 0,
   },
 }

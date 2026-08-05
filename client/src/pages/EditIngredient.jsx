@@ -1,220 +1,158 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import api from '../services/api.jsx'
+import Loading from '../components/Loading.jsx'
+import { useToast } from '../components/Toast.jsx'
+import {
+  Field,
+  Form,
+  FormActions,
+  FormError,
+  FormPage,
+  SecondaryButton,
+  Select,
+  SubmitButton,
+  TextArea,
+  TextInput,
+} from '../components/Form.jsx'
+import { INGREDIENT_CATEGORIES } from '../constants/categories.js'
 
 const EditIngredient = () => {
-  const [ingredient, setIngredient] = useState({
-    // name: '',
-    // category: '',
-    // calories: '',
-    // dietary_tags: ''
-  });
+  // Starts empty, so every input needs a `?? ''` fallback until the fetch
+  // lands — otherwise React flips them from uncontrolled to controlled.
+  const [ingredient, setIngredient] = useState({})
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(null)
+  const [errors, setErrors] = useState({})
+  const [submitting, setSubmitting] = useState(false)
+  const [formError, setFormError] = useState(null)
 
-  const categories = [
-    'category',
-    'pantry',
-    'fridge',
-    'freezer',
-    'cabinet',
-    'counter',
-    'drawer',
-    'shelf',
-    'spice rack'
-  ]
-
-  const { id } = useParams();
-
-  const handleChange = (event) => {
-    const {name, value} = event.target
-    setIngredient((prev) => {
-      return {
-        ...prev,
-        [name]:value
-      }
-    })
-  }
-
-
+  const { id } = useParams()
   const navigate = useNavigate()
-
-  const handleCancel = (event) => {
-    navigate('/kitchen')
-  }
+  const toast = useToast()
 
   useEffect(() => {
     const loadIngredient = async () => {
-      const data  = await api.getIngredient(id);
-      setIngredient(data)
+      setLoading(true)
+      try {
+        const data = await api.getIngredient(id)
+        setIngredient(data ?? {})
+      } catch (err) {
+        setLoadError(err.message)
+      } finally {
+        setLoading(false)
+      }
     }
-
     loadIngredient()
   }, [id])
 
-  const EditIngredient = (event) => {
-    event.preventDefault()
+  const handleChange = (event) => {
+    const { name, value } = event.target
+    setIngredient((prev) => ({ ...prev, [name]: value }))
+    setErrors((prev) => (prev[name] ? { ...prev, [name]: undefined } : prev))
+  }
 
-    const options = {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(ingredient)
+  const validate = () => {
+    const next = {}
+    if (!(ingredient.name ?? '').trim()) next.name = 'Give the ingredient a name.'
+    if (ingredient.calories !== '' && Number(ingredient.calories) < 0) {
+      next.calories = 'Calories cannot be negative.'
     }
-    api.updateIngredient(id, options)
+    return next
+  }
+
+  const handleSubmit = async (event) => {
+    event.preventDefault()
+    setFormError(null)
+
+    const found = validate()
+    setErrors(found)
+    if (Object.keys(found).length > 0) {
+      toast.error('Please fix the highlighted fields.')
+      return
+    }
+
+    setSubmitting(true)
+    try {
+      await api.updateIngredient(id, ingredient)
+      toast.success('Ingredient updated')
+      navigate('/kitchen')
+    } catch (err) {
+      setFormError(err.message)
+      toast.error("Couldn't save your changes.")
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  if (loading) {
+    return <Loading label="Loading ingredient…" size="lg" />
   }
 
   return (
-    <div>
-      <h1 style={styles.title}>Edit Ingredient</h1>
-      <div style={styles.formContainer}>
-        <form>
-          <label htmlFor="name">
-            Ingredient Name:    
-          </label>
-          <input 
-            id='name'
-            name='name'
+    <FormPage title="Edit ingredient" subtitle="Update the details you keep on this item.">
+      <Form onSubmit={handleSubmit}>
+        <FormError message={loadError ?? formError} />
+
+        <Field id="name" label="Ingredient name" error={errors.name} required>
+          <TextInput
+            id="name"
+            name="name"
             type="text"
-            value={ingredient.name}
+            value={ingredient.name ?? ''}
             onChange={handleChange}
-            style={styles.input}
+            disabled={submitting}
+            error={errors.name}
           />
-          <br />
-          <label htmlFor="name">
-            Categories:    
-          </label>
-          <select
-            id='category'
-            name='category'
-            value={ingredient.category}
+        </Field>
+
+        <Field id="category" label="Category">
+          <Select
+            id="category"
+            name="category"
+            value={ingredient.category ?? ''}
             onChange={handleChange}
-            style={styles.input}
+            disabled={submitting}
           >
-            {categories.map((cat) => (
+            <option value="">Select a category…</option>
+            {INGREDIENT_CATEGORIES.map((cat) => (
               <option key={cat} value={cat}>{cat}</option>
             ))}
-          </select>
-          <br />
-          <label htmlFor="calories">
-            Calories:    
-          </label>
-          <input 
-            id='calories'
-            name='calories'
+          </Select>
+        </Field>
+
+        <Field id="calories" label="Calories" hint="Per serving." error={errors.calories}>
+          <TextInput
+            id="calories"
+            name="calories"
             type="number"
-            min ="0"
-            value={ingredient.calories}
+            min="0"
+            value={ingredient.calories ?? ''}
             onChange={handleChange}
-            style={styles.input}
+            disabled={submitting}
+            error={errors.calories}
           />
-          <br />
-          <label htmlFor="dietary_tag">
-            Nutritional / Dietary Info:    
-          </label>
-          <textarea 
-            id='dietary_tags'
-            name='dietary_tags'
-            value={ingredient.dietary_tags}
+        </Field>
+
+        <Field id="dietary_tags" label="Nutritional / dietary info">
+          <TextArea
+            id="dietary_tags"
+            name="dietary_tags"
+            value={ingredient.dietary_tags ?? ''}
             onChange={handleChange}
-            style={styles.textInput}
+            disabled={submitting}
           />
-          <div style={styles.btnBox}>
-            <button 
-              type="submit"
-              style={styles.btn1}
-              onClick={EditIngredient}
-            >Save</button>
-            <button 
-              type="submit"
-              style={styles.btn2}
-              onClick={handleCancel}
-            >Cancel</button>
-          </div>
-        </form>
-      </div>
-    </div>
+        </Field>
+
+        <FormActions>
+          <SubmitButton submitting={submitting}>Save changes</SubmitButton>
+          <SecondaryButton onClick={() => navigate('/kitchen')} disabled={submitting}>
+            Cancel
+          </SecondaryButton>
+        </FormActions>
+      </Form>
+    </FormPage>
   )
 }
 
-export default EditIngredient 
-
-const styles = {
-  title: {
-    display: 'block',
-    fontSize: '30',
-    marginBottom: '1px',
-    // textAlign: 'center',
-    // margin: '0 auto',
-  },
-  formContainer: {
-    border: 'solid black',
-    backgroundColor: '#fafafa',
-    borderRadius: '15px',
-    display: 'flex',
-    padding: '20px',
-    // justifyContent: 'center',
-    fontWeight: 'bold',
-    width: '700px',
-    // margin: '0 auto',
-    marginTop: '0px',
-  },
-  input: {
-    display: 'block',
-    // border: 'solid black',
-    width: '150px',
-    height: '30px',
-    borderRadius: '5px',
-    
-  },
-  textInput: {
-    display: 'block',
-    // border: 'solid black',
-    width: '600px',
-    height: '250px',
-    borderRadius: '5px',
-    
-  },
-  btnBox: {
-    display: 'flex',
-    gap:'10px',
-  },
-  btn1: {
-    cursor: 'pointer',
-    display: 'flex',
-    justifyContent:'center',
-    alignItems:'center',
-    width: '150px',
-    height: '50px',
-    fontSize: '15px',
-    fontWeight: 'bold',
-    backgroundColor: '#333333',
-    color: 'white',
-    border: 'solid black',
-    padding: '20px',
-    borderRadius: '5px',
-    borderWidth: '1px',
-    textDecoration: 'none',
-    // display: 'block',
-    marginTop: '20px',
-    marginRight: '20px',
-  },
-  btn2: {
-    cursor: 'pointer',
-    display: 'flex',
-    justifyContent:'center',
-    alignItems:'center',
-    width: '150px',
-    height: '50px',
-    fontSize: '15px',
-    fontWeight: 'bold',
-    color: 'black',
-    border: 'solid black',
-    padding: '20px',
-    borderRadius: '5px',
-    borderWidth: '1px',
-    textDecoration: 'none',
-    // display: 'block',
-    marginTop: '20px',
-    marginRight: '20px',
-  },
-}
+export default EditIngredient
