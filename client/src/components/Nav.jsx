@@ -1,133 +1,110 @@
-import { Link } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom'
 import { useState, useEffect, useRef } from 'react'
 import Menu from '../components/ProfileMenu.jsx'
+import NavShell, { navLinkStyle } from './NavShell.jsx'
+import { colors, radius } from '../styles/theme.js'
 
-function Nav ({ user }) {
+function Nav({ user }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef(null)
-
-  const toggleMenu = () => {
-    if (menuOpen == true) {
-      setMenuOpen(false)
-    } if (menuOpen == false) {
-      setMenuOpen(true)
-    }
-
-    console.log(`menuOpen: ${menuOpen}`)
-  }
+  const location = useLocation()
 
   useEffect(() => {
     const closeMenu = (e) => {
-      if (!menuRef.current.contains(e.target)) {
+      if (!menuRef.current?.contains(e.target)) {
         setMenuOpen(false)
       }
     }
-
-    document.addEventListener("mousedown", closeMenu)
-
-    return () => {
-      document.removeEventListener("mousedown", closeMenu)
+    const onEscape = (e) => {
+      if (e.key === 'Escape') setMenuOpen(false)
     }
 
+    document.addEventListener('mousedown', closeMenu)
+    document.addEventListener('keydown', onEscape)
+
+    return () => {
+      document.removeEventListener('mousedown', closeMenu)
+      document.removeEventListener('keydown', onEscape)
+    }
   }, [])
 
+  // Navigating away should never leave the dropdown hanging open.
+  useEffect(() => {
+    setMenuOpen(false)
+  }, [location.pathname])
+
   return (
-    <div style={styles.nav}>
-      <div style={styles.title}>EatRite</div>
-      <div style={styles.btns}>
-        <Link to="/home" style={styles.btn}><strong>Home</strong></Link>
-        <Link to="/kitchen" style={styles.btn}><strong>My Kitchen</strong></Link>
-        <Link to="/calendar" style={styles.btn}><strong>Calendar</strong></Link>
-        {user.is_admin && <Link to="/admin" style={styles.btn}><strong>Admin</strong></Link>}
-        {/* <Link to="/profile" style={styles.btn}><strong>Profile</strong></Link> */}
-        <div 
-          ref={menuRef}
-          style={styles.profileContainer}>
+    <NavShell>
+      <NavLink to="/home" className="nav-link" style={navLinkStyle}>
+        Home
+      </NavLink>
+      <NavLink to="/kitchen" className="nav-link" style={navLinkStyle}>
+        My Kitchen
+      </NavLink>
+      <NavLink to="/calendar" className="nav-link" style={navLinkStyle}>
+        Calendar
+      </NavLink>
+      {user.is_admin && (
+        <NavLink to="/admin" className="nav-link" style={navLinkStyle}>
+          Admin
+        </NavLink>
+      )}
 
-          <button to="/profile" 
-            style={{
-              ...styles.profileBtn,
-              backgroundImage: `url(${user.avatarurl})`
-            }}
-            onClick={() => toggleMenu()}
-          >
-
-          </button>
-          {menuOpen && (
-            <Menu user={user}></Menu>
+      <div ref={menuRef} style={styles.profileContainer}>
+        <button
+          type="button"
+          style={styles.profileBtn}
+          onClick={() => setMenuOpen((open) => !open)}
+          aria-haspopup="menu"
+          aria-expanded={menuOpen}
+          aria-label={`Account menu for ${user.username ?? 'your account'}`}
+        >
+          {user.avatarurl ? (
+            <img src={user.avatarurl} alt="" style={styles.avatar} />
+          ) : (
+            <span style={styles.avatarFallback}>
+              {(user.username ?? '?').charAt(0).toUpperCase()}
+            </span>
           )}
-
-        </div>
+        </button>
+        {menuOpen && <Menu user={user} />}
       </div>
-    </div>
-  );
+    </NavShell>
+  )
 }
 
-export default Nav;
+export default Nav
 
 const styles = {
-  profileImg: {
-    // width: '50px'
-  },
-  nav: {
-    // backgroundImage: `url(${navpattern})`,
-    // backgroundColor: 'gray',
-    display: 'flex',
-    alignItems: 'center',
-    border: 'solid black',
-    borderWidth: '2px',
-    justifyContent: 'space-between',
-    height: '100px',
-    gap: '10px',
-    paddingRight: '10px',
-    marginBottom: '5px',
-  }, 
-  btns: {
-    display: 'flex',
-    alignItems: 'center',
-  },
   profileContainer: {
     position: 'relative',
-
+    marginLeft: '4px',
   },
   profileBtn: {
-    // backgroundColor: "#27F561",
-    // backgroundImage: `url(${user.avatarurl})`,
+    display: 'block',
+    width: '44px',
+    height: '44px',
+    padding: 0,
+    borderRadius: radius.pill,
+    border: `1px solid ${colors.border}`,
+    background: colors.surfaceAlt,
     cursor: 'pointer',
-    display: 'block',
-    width: '4px',
-    height: '4px',
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    fontSize: '15px',
-    color: 'black',
-    border: 'solid gray',
-    padding: '20px',
-    borderRadius: '50px',
-    borderWidth: '0.1px',
-    textDecoration: 'none',
-    margin: '10px',
+    overflow: 'hidden',
   },
-  btn: {
-    // backgroundColor: "#27F561",
+  avatar: {
     display: 'block',
-    fontSize: '15px',
-    color: 'black',
-    border: 'solid black',
-    padding: '20px',
-    borderRadius: '5px',
-    borderWidth: '1px',
-    textDecoration: 'none',
-    margin: '10px',
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
   },
-  title: {
-    fontSize: '40px',
-    fontWeight: '700',
-    color: 'black',
-    margin: '5px',
-    backgroundColor: 'white',
-    borderRadius: '5px',
-    padding: '10px',
-  }
-
+  avatarFallback: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    height: '100%',
+    fontSize: '17px',
+    fontWeight: 700,
+    color: colors.textMuted,
+  },
 }
