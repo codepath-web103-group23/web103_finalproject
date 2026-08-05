@@ -121,6 +121,7 @@ const patchRecipe = async (id, recipe) => {
       headers: {
         'Content-Type': 'application/json'
       },
+      credentials: 'include',
       body: JSON.stringify(recipe)
     })
 
@@ -149,6 +150,7 @@ const patchRecipeIngredients = async (id, ingredients) => {
       headers: {
         'Content-Type': 'application/json'
       },
+      credentials: 'include',
       body: JSON.stringify({ ingredients })
     })
 
@@ -166,6 +168,7 @@ const createRecipeIngredient = async (recipeIngredient) => {
       headers: {
         'Content-Type': 'application/json'
       },
+      credentials: 'include',
       body: JSON.stringify(recipeIngredient)
     })
 
