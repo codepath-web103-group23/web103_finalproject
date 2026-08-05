@@ -3,6 +3,8 @@ import toSteps from "../utils/steps.js"
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import Loading from '../components/Loading.jsx'
+import Modal from '../components/Modal.jsx'
+import { useToast } from '../components/Toast.jsx'
 import { button, card, colors, font, heading, radius, space } from '../styles/theme.js'
 
 const Instructions = () => {
@@ -11,7 +13,13 @@ const Instructions = () => {
   const [error, setError] = useState(null)
   // Cook mode: ticking a step off keeps your place while your hands are busy.
   const [done, setDone] = useState([])
+  // Finishing a recipe takes its ingredients out of your kitchen, so it goes
+  // through a confirm step and reports back exactly what it used.
+  const [confirming, setConfirming] = useState(false)
+  const [cooking, setCooking] = useState(false)
+  const [result, setResult] = useState(null)
   const params = useParams()
+  const toast = useToast()
 
   useEffect(() => {
     const loadRecipe = async () => {
@@ -35,6 +43,20 @@ const Instructions = () => {
     setDone((prev) =>
       prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
     )
+  }
+
+  const finishCooking = async () => {
+    setCooking(true)
+    try {
+      const summary = await api.cookRecipe(params.id)
+      setResult(summary)
+      setConfirming(false)
+      toast.success(`${recipe.title} cooked — kitchen updated`)
+    } catch (err) {
+      toast.error(err.message)
+    } finally {
+      setCooking(false)
+    }
   }
 
   if (loading) {
@@ -103,6 +125,105 @@ const Instructions = () => {
           </ol>
         )}
       </div>
+
+      {steps.length > 0 && (
+        <div style={styles.finishBar}>
+          <p style={styles.finishHint}>
+            {done.length === steps.length
+              ? 'All done — take the ingredients out of your kitchen?'
+              : 'Finished early? You can update your kitchen at any point.'}
+          </p>
+          <button
+            type="button"
+            className="btn"
+            style={styles.finishBtn}
+            onClick={() => setConfirming(true)}
+          >
+            I cooked this
+          </button>
+        </div>
+      )}
+
+      {confirming && (
+        <Modal
+          title="Update your kitchen?"
+          onClose={() => !cooking && setConfirming(false)}
+          footer={
+            <>
+              <button
+                type="button"
+                className="btn"
+                style={styles.secondaryBtn}
+                onClick={() => setConfirming(false)}
+                disabled={cooking}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn"
+                style={styles.finishBtn}
+                onClick={finishCooking}
+                disabled={cooking}
+              >
+                {cooking ? 'Updating…' : 'Yes, I cooked it'}
+              </button>
+            </>
+          }
+        >
+          <p style={styles.modalText}>
+            This subtracts <strong>{recipe.title}</strong>’s ingredients from your kitchen.
+            Anything you run out of is removed from the list.
+          </p>
+        </Modal>
+      )}
+
+      {result && (
+        <Modal title="Kitchen updated" onClose={() => setResult(null)}>
+          {result.used.length > 0 && (
+            <>
+              <p style={styles.resultHeading}>Used from your kitchen</p>
+              <ul style={styles.resultList}>
+                {result.used.map((item) => (
+                  <li key={item.name} style={styles.resultItem}>
+                    {item.name}
+                    <span style={styles.resultNote}>
+                      {item.remaining === 0 ? 'all used up' : `${item.remaining} left`}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+
+          {result.missing.length > 0 && (
+            <>
+              <p style={styles.resultHeading}>Not in your kitchen</p>
+              <ul style={styles.resultList}>
+                {result.missing.map((name) => (
+                  <li key={name} style={styles.resultItem}>{name}</li>
+                ))}
+              </ul>
+            </>
+          )}
+
+          {result.skipped.length > 0 && (
+            <>
+              <p style={styles.resultHeading}>Left unchanged</p>
+              <ul style={styles.resultList}>
+                {result.skipped.map((item) => (
+                  <li key={item.name} style={styles.resultItem}>
+                    {item.name}
+                    <span style={styles.resultNote}>{item.reason}</span>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+
+          <Link to="/kitchen" style={styles.kitchenLink}>View my kitchen →</Link>
+        </Modal>
+      )}
     </div>
   )
 }
@@ -203,6 +324,61 @@ const styles = {
   },
   secondaryBtn: {
     ...button.secondary,
+  },
+  finishBar: {
+    ...card,
+    display: 'flex',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: space.md,
+    marginTop: space.lg,
+    padding: space.lg,
+  },
+  finishHint: {
+    margin: 0,
+    fontSize: font.size.sm,
+    color: colors.textMuted,
+  },
+  finishBtn: {
+    ...button.primary,
+  },
+  modalText: {
+    margin: 0,
+    fontSize: font.size.sm,
+    lineHeight: 1.6,
+  },
+  resultHeading: {
+    margin: `${space.md} 0 ${space.xs}`,
+    fontSize: font.size.xs,
+    fontWeight: font.weight.bold,
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px',
+    color: colors.textMuted,
+  },
+  resultList: {
+    listStyle: 'none',
+    margin: 0,
+    padding: 0,
+  },
+  resultItem: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    gap: space.md,
+    padding: `${space.xs} 0`,
+    borderBottom: `1px solid ${colors.border}`,
+    fontSize: font.size.sm,
+  },
+  resultNote: {
+    color: colors.textFaint,
+    fontSize: font.size.xs,
+  },
+  kitchenLink: {
+    display: 'inline-block',
+    marginTop: space.lg,
+    fontSize: font.size.sm,
+    fontWeight: font.weight.semibold,
+    color: colors.ink,
   },
   errorBox: {
     ...card,

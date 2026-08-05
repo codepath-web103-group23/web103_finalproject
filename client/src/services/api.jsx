@@ -24,6 +24,10 @@ const addToKitchen = (ingredient) =>
 const removeFromKitchen = (ingredientId) =>
   request(`/delete/kitchen-item/${ingredientId}`, { method: 'DELETE' })
 
+// Consumes a recipe's ingredients out of the signed-in user's kitchen.
+const cookRecipe = (recipeId) =>
+  request(`/kitchen/cook/${recipeId}`, { method: 'POST' })
+
 const getRecipes = () => request('/recipes')
 
 const getRecipe = (id) => request(`/recipe/${id}`)
@@ -61,6 +65,7 @@ export default {
   getKitchen,
   addToKitchen,
   removeFromKitchen,
+  cookRecipe,
 
   getRecipes,
   getRecipe,
