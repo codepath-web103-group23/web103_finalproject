@@ -119,6 +119,14 @@ img {
   color: var(--text-faint);
 }
 
+/* SearchBar draws its own clear button; WebKit's native one would sit next to
+ * it as a second X. */
+input[type='search']::-webkit-search-cancel-button,
+input[type='search']::-webkit-search-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
 .input:disabled {
   background: var(--surface-alt);
   color: var(--text-muted);

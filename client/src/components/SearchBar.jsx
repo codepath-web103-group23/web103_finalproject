@@ -3,7 +3,7 @@ import { colors, font, input, radius, space } from '../styles/theme.js'
 
 // If a parent passes `value` + `onChange`, the parent owns the text (controlled).
 // Otherwise the input keeps its own state so `<Search />` still works on its own.
-function SearchBar({ value, onChange, placeholder = "Search..." }) {
+function SearchBar({ id, value, onChange, placeholder = "Search..." }) {
   const [internalQuery, setInternalQuery] = useState("");
 
   const isControlled = value !== undefined
@@ -33,13 +33,15 @@ function SearchBar({ value, onChange, placeholder = "Search..." }) {
       </svg>
 
       <input
+        id={id}
         type="search"
         className="input"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder={placeholder}
         style={styles.search}
-        aria-label={placeholder}
+        // Only self-label when no external <label> is bound to it.
+        aria-label={id ? undefined : placeholder}
       />
 
       {query && (
@@ -63,9 +65,8 @@ const styles = {
     position: 'relative',
     display: 'flex',
     alignItems: 'center',
-    minWidth: '260px',
-    flex: '1 1 260px',
-    maxWidth: '420px',
+    width: '280px',
+    maxWidth: '100%',
   },
   icon: {
     position: 'absolute',

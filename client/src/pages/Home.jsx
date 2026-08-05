@@ -115,25 +115,31 @@ const Home = ({ user }) => {
 
   return (
     <div>
-      <header style={styles.header}>
-        <h1 style={styles.title}>Browse recipes</h1>
-        <p style={styles.subtitle}>
-          {loading
-            ? 'Finding recipes…'
-            : `${visibleRecipes.length} ${visibleRecipes.length === 1 ? 'recipe' : 'recipes'}`}
-          {!loading && filtersActive && ` of ${recipes.length}`}
-        </p>
-      </header>
+      <div style={styles.toolbar}>
+        <div>
+          <h1 style={styles.title}>Find something to cook</h1>
+          {/* The count lives under the title rather than being the title —
+              "Browse recipes" only repeated the nav's own Home link. */}
+          <p style={styles.subtitle}>
+            {loading
+              ? 'Loading recipes…'
+              : filtersActive
+                ? `${visibleRecipes.length} of ${recipes.length} recipes match`
+                : `${recipes.length} ${recipes.length === 1 ? 'recipe' : 'recipes'} to explore`}
+          </p>
+        </div>
 
-      <div style={styles.filterBox}>
-        <Search
-          value={query}
-          onChange={setQuery}
-          placeholder="Search recipes..."
-        />
-
-        <div style={styles.dropdownBox}>
-          <div style={styles.dropdown}>
+        <div style={styles.controls}>
+          <div style={styles.control}>
+            <label style={styles.label} htmlFor="recipe-search">Search</label>
+            <Search
+              id="recipe-search"
+              value={query}
+              onChange={setQuery}
+              placeholder="Search recipes..."
+            />
+          </div>
+          <div style={styles.control}>
             <label style={styles.label} htmlFor="rating-filter">Min rating</label>
             <select
               id="rating-filter"
@@ -149,7 +155,7 @@ const Home = ({ user }) => {
               <option value="4">4+ stars</option>
             </select>
           </div>
-          <div style={styles.dropdown}>
+          <div style={styles.control}>
             <label style={styles.label} htmlFor="date-sort">Sort by</label>
             <select
               id="date-sort"
@@ -224,35 +230,35 @@ const Home = ({ user }) => {
 export default Home;
 
 const styles = {
-  header: {
-    marginBottom: space.lg,
-  },
-  title: {
-    ...heading.h1,
-  },
-  subtitle: {
-    margin: 0,
-    fontSize: font.size.sm,
-    color: colors.textMuted,
-  },
-  filterBox: {
+  // Heading and controls share one row on wide screens and stack on narrow
+  // ones. Every control has a label above it, so they all sit on one baseline —
+  // the search box used to have none and floated out of line with the selects.
+  toolbar: {
     display: 'flex',
     flexWrap: 'wrap',
     alignItems: 'flex-end',
     justifyContent: 'space-between',
-    gap: space.md,
-    padding: space.md,
-    marginBottom: space.lg,
-    background: colors.surface,
-    border: `1px solid ${colors.border}`,
-    borderRadius: radius.lg,
+    gap: space.lg,
+    marginBottom: space.xl,
+    paddingBottom: space.md,
+    borderBottom: `1px solid ${colors.border}`,
   },
-  dropdownBox: {
+  title: {
+    ...heading.h1,
+    margin: 0,
+  },
+  subtitle: {
+    margin: `${space.xs} 0 0`,
+    fontSize: font.size.sm,
+    color: colors.textMuted,
+  },
+  controls: {
     display: 'flex',
     flexWrap: 'wrap',
+    alignItems: 'flex-end',
     gap: space.md,
   },
-  dropdown: {
+  control: {
     display: 'flex',
     flexDirection: 'column',
   },
