@@ -22,7 +22,12 @@ export const buildPantry = (kitchenRows) => {
 }
 
 export const statusFor = (pantry, ingredient) => {
-  const stock = pantry.get(Number(ingredient.ingredient_id ?? ingredient.id))
+  // Deliberately no `?? ingredient.id` fallback: on a recipe-ingredients row
+  // `id` is the join-table row id, so falling back to it would compare the
+  // wrong number against the pantry and quietly report nonsense.
+  if (ingredient.ingredient_id == null) return MISSING
+
+  const stock = pantry.get(Number(ingredient.ingredient_id))
   if (!stock) return MISSING
 
   const sameUnit =

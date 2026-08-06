@@ -13,7 +13,8 @@ const createRecipe = async (req, res) => {
 const getRecipes = async (req, res) => {
   try {
     const results = await model.getRecipes(req, res)
-    res.status(201).json(results)
+    // A read returns 200; 201 means "created".
+    res.status(200).json(results)
   } catch (err) {
     res.status(500).json({ message: err.message })
   }

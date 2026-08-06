@@ -94,13 +94,24 @@ app.use('/auth', authroutes)
 //     res.send('hello, world!');
 // });
 
+// Unmatched API and auth requests must 404 as JSON. Without this they fall
+// through to the SPA catch-all below and get index.html with a 200, so the
+// client sees an HTML parse error instead of a useful status.
+app.use(['/api', '/auth'], (req, res) => {
+  res.status(404).json({ error: `No such endpoint: ${req.method} ${req.originalUrl}` })
+})
+
 app.use(express.static(path.join(__dirname, 'public')))
 
 app.get('/{*splat}', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'))
 })
 
-app.listen(3000, function () {
-    console.log('server started on port 3000');
+// Render (and most hosts) assign the port via the environment; a hardcoded
+// 3000 means the deployed service never binds where the platform expects.
+const PORT = process.env.PORT || 3000
+
+app.listen(PORT, function () {
+    console.log(`server started on port ${PORT}`);
 });
 
