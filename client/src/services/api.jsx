@@ -1,200 +1,77 @@
-const API_URL = `${import.meta.env.VITE_API_URL}/api`
+import { request } from './http.js'
 
-const addIngredient = async (options) => {
-  try {
-    const response = await fetch(`${API_URL}/create/ingredient`,options)
-    window.location = '/kitchen'
-  } catch (err) {
-    console.error(err)
-  }
-}
+// Every call throws an ApiError on a non-2xx response instead of swallowing it,
+// so pages can render an error state or fire a toast. Navigation used to happen
+// inside these functions (`window.location = '/kitchen'`), which forced a full
+// page reload and destroyed any feedback the page had just shown — callers now
+// navigate themselves with `useNavigate`.
 
-const editIngredient = async (id, options) => {
-  const response = await fetch(`${API_URL}/edit/ingredient`, options)
-  const data = await response.json()
-  window.location = '/kitchen'
-  return data
-}
+const addIngredient = (ingredient) =>
+  request('/create/ingredient', { method: 'POST', body: ingredient })
 
-const getIngredients = async () => {
-  try {
-    const response = await fetch(`${API_URL}/ingredients`)
-    const data = await response.json()
-    return data
-  } catch(err) {
-    console.error(err)
-  }
-}
+const getIngredients = () => request('/ingredients')
 
-const getIngredient = async (id) => {
-  try {
-    const response = await fetch(`${API_URL}/ingredient/${id}`)
-    const data = await response.json()
-    return data
-  } catch(err) {
-    console.error(err)
-  }
-}
+const getIngredient = (id) => request(`/ingredient/${id}`)
 
-const updateIngredient = async (id, options) => {
-  try {
-    const response = await fetch(`${API_URL}/ingredient/${id}`, options)
-    const data = await response.json()
-    window.location = '/kitchen'
-    return data
-  } catch (err) {
-    console.error(err)
-  }
-}
+const updateIngredient = (id, ingredient) =>
+  request(`/ingredient/${id}`, { method: 'PATCH', body: ingredient })
 
-const getKitchen = async () => {
-  try {
-    const response = await fetch(`${API_URL}/kitchen`, { credentials: 'include' })
-    const data = await response.json()
-    return data
-  } catch (err) {
-    console.error(err)
-  }
-}
+const getKitchen = () => request('/kitchen')
 
-const addToKitchen = async (ingredient) => {
-  try {
-    const response = await fetch(`${API_URL}/create/kitchen-item`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify(ingredient)
-    })
-    window.location = '/kitchen'
-    return await response.json()
-  } catch (err) {
-    console.error(err)
-  }
-}
+const addToKitchen = (ingredient) =>
+  request('/create/kitchen-item', { method: 'POST', body: ingredient })
 
-const removeFromKitchen = async (ingredientId) => {
-  try {
-    const response = await fetch(`${API_URL}/delete/kitchen-item/${ingredientId}`, {
-      method: 'DELETE',
-      credentials: 'include'
-    })
-    return await response.json()
-  } catch (err) {
-    console.error(err)
-  }
-}
+const removeFromKitchen = (ingredientId) =>
+  request(`/delete/kitchen-item/${ingredientId}`, { method: 'DELETE' })
 
-const getRecipes = async () => {
-  try {
-    const response = await fetch(`${API_URL}/recipes`)
-    const data = await response.json()
-    return data
-  } catch (err) {
-    console.log(err)
-  }
-}
+// Consumes a recipe's ingredients out of the signed-in user's kitchen.
+const cookRecipe = (recipeId) =>
+  request(`/kitchen/cook/${recipeId}`, { method: 'POST' })
 
-const getRecipe = async (id) => {
-  try {
-    const response = await fetch(`${API_URL}/recipe/${id}`)
-    const data = await response.json()
-    return data
-  } catch (err) {
-    console.log(err)
-  }
-}
+const getRecipes = () => request('/recipes')
 
-const createRecipe = async (options) => {
-  try {
-    const response = await fetch(`${API_URL}/create/recipe`, options)
-    const data = await response.json()
-    return data
-  } catch (err) {
-    console.log(err)
-  }
-}
+const getRecipe = (id) => request(`/recipe/${id}`)
 
-const patchRecipe = async (id, recipe) => {
-  try {
-    const response = await fetch(`${API_URL}/patch/recipe/${id}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      credentials: 'include',
-      body: JSON.stringify(recipe)
-    })
+const createRecipe = (payload) =>
+  request('/create/recipe', { method: 'POST', body: payload })
 
-    const data = await response.json()
-    return data
-  } catch (err) {
-    console.log(err)
-  }
-}
+const patchRecipe = (id, recipe) =>
+  request(`/patch/recipe/${id}`, { method: 'PATCH', body: recipe })
 
-const getRecipeIngredients = async (id) => {
-  try {
-    const response = await fetch(`${API_URL}/recipe/${id}/ingredients`)
-    const data = await response.json()
-    return data
-  } catch (err) {
-    console.log(err)
-  }
-}
+const deleteRecipe = (id) =>
+  request(`/delete/recipe/${id}`, { method: 'DELETE' })
 
+const getRecipeIngredients = (id) => request(`/recipe/${id}/ingredients`)
 
-const patchRecipeIngredients = async (id, ingredients) => {
-  try {
-    const response = await fetch(`${API_URL}/patch/recipe/${id}/ingredients`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      credentials: 'include',
-      body: JSON.stringify({ ingredients })
-    })
+const patchRecipeIngredients = (id, ingredients) =>
+  request(`/patch/recipe/${id}/ingredients`, {
+    method: 'PATCH',
+    body: { ingredients },
+  })
 
-    const data = await response.json()
-    return data
-  } catch (err) {
-    console.log(err)
-  }
-}
-
-const createRecipeIngredient = async (recipeIngredient) => {
-  try {
-    const response = await fetch(`${API_URL}/create/recipe/ingredient`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      credentials: 'include',
-      body: JSON.stringify(recipeIngredient)
-    })
-
-    const data = await response.json()
-    return data
-  } catch (err) {
-    console.log(err)
-  }
-}
+const createRecipeIngredient = (recipeIngredient) =>
+  request('/create/recipe/ingredient', {
+    method: 'POST',
+    body: recipeIngredient,
+  })
 
 export default {
   addIngredient,
   getIngredients,
   getIngredient,
-  editIngredient,
   updateIngredient,
-  createRecipeIngredient, 
+  createRecipeIngredient,
 
   getKitchen,
   addToKitchen,
   removeFromKitchen,
+  cookRecipe,
 
   getRecipes,
   getRecipe,
   getRecipeIngredients,
-  patchRecipeIngredients, 
+  patchRecipeIngredients,
   createRecipe,
   patchRecipe,
+  deleteRecipe,
 }

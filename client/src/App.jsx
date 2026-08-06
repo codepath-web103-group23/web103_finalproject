@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useRoutes, Link, useLocation, Navigate } from 'react-router-dom'
+import { useRoutes, useLocation, Navigate } from 'react-router-dom'
 import Nav from './components/Nav.jsx'
 import Home from './pages/Home.jsx'
 import Kitchen from './pages/Kitchen.jsx'
@@ -15,11 +15,14 @@ import AddRecipe from './pages/AddRecipe.jsx'
 import EditRecipe from './pages/EditRecipe.jsx'
 import Calendar from './pages/Calendar.jsx'
 import Admin from './pages/Admin.jsx'
-import Loading from './components/Loading.jsx'
 import GuestNav from './components/GuestNav.jsx'
+import NavShell from './components/NavShell.jsx'
+import { page } from './styles/theme.js'
 
 function App() {
-  const [checkingUser, setCheckingUser] = useState(false)
+  // Starts true so the first paint shows the neutral nav shell rather than
+  // flashing GuestNav at an already-logged-in user.
+  const [checkingUser, setCheckingUser] = useState(true)
   const [loggedIn, setLoggedIn] = useState(false)
   const [user, setUser] = useState({})
   const location = useLocation()
@@ -28,14 +31,11 @@ function App() {
   const API_URL = import.meta.env.VITE_API_URL
 
   const getUser = async () => {
-      console.log("starting auth check")
     try {
       setCheckingUser(true)
 
       const response = await fetch(
         `${API_URL}/auth/login/success`, { credentials: 'include' } )
-
-      console.log("auth response:", response.status)
 
       if (!response.ok) {
         setUser(null)
@@ -45,13 +45,10 @@ function App() {
 
       const json = await response.json()
 
-      console.log("auth received, user:", json)
-
       setUser(json.user)
       setLoggedIn(true)
     } finally {
       setCheckingUser(false)
-      console.log("finished auth check")
     }
   }
 
@@ -140,38 +137,34 @@ function App() {
     },
   ])
 
-  return (
-    <div>
-      {
-        (loggedIn && !isLoginPage && !checkingUser) ? 
-      <Nav user={user}></Nav> : (!isLoginPage && checkingUser) ?
-      <Loading></Loading> : <GuestNav></GuestNav>
-      }
+  // The login page carries its own branding, so it gets no nav at all. While
+  // the session check is in flight we render the empty shell — same height and
+  // brand as the real nav, so the header never jumps once auth resolves.
+  const renderNav = () => {
+    if (isLoginPage) return null
+    if (checkingUser) return <NavShell />
+    return loggedIn ? <Nav user={user} /> : <GuestNav />
+  }
 
-      {routes}
+  return (
+    <div style={styles.app}>
+      {renderNav()}
+      <main style={isLoginPage ? undefined : styles.page}>{routes}</main>
     </div>
   )
 }
 
 export default App
 
-const guestBarStyle = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  border: 'solid black',
-  borderWidth: '2px',
-  height: '60px',
-  padding: '0 20px',
-  marginBottom: '5px',
-  fontSize: '20px',
-}
-
-const guestLinkStyle = {
-  textDecoration: 'none',
-  color: 'black',
-  border: 'solid black',
-  borderWidth: '1px',
-  borderRadius: '5px',
-  padding: '8px 16px',
+const styles = {
+  app: {
+    minHeight: '100svh',
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  page: {
+    ...page,
+    width: '100%',
+    flex: 1,
+  },
 }

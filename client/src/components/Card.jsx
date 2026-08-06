@@ -1,131 +1,200 @@
-import { Link, useNavigate } from 'react-router-dom'
-import heart from '../assets/heart.png'
-import favoritesApi from '../services/favoritesApi.js'
- 
-function Card ({id, title, stars, image_url, avg_rating, loggedIn, isFavorited, onToggle}) {
-  const navigate = useNavigate()
+import { memo, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { button, card, colors, font, radius, space } from '../styles/theme.js'
+import { sizedImage } from '../utils/image.js'
 
-  const createFavorite = (recipe_id) => {
-    if (!loggedIn) {
-      navigate('/login')
-      return
-    }
-    favoritesApi.createFavorite(recipe_id)
-  }
+function Card ({id, title, image_url, avg_rating, loggedIn, isFavorited, onToggle}) {
+  const [imgFailed, setImgFailed] = useState(false)
+
+  // pg hands back NUMERIC as a string ("4.50"), and an unrated recipe is null —
+  // both used to render as a bare "stars" with no number in front of it.
+  const rating = avg_rating == null ? null : Number(avg_rating)
+  const hasRating = rating != null && !Number.isNaN(rating)
+
+  const showImage = image_url && !imgFailed
 
   return (
-    <div style={styles.container}>
-      <Link to={`/recipe/${id}`}>
-        <img src={image_url} style={styles.img} />
+    <article style={styles.container} className="card">
+      <Link to={`/recipe/${id}`} style={styles.imgLink}>
+        {showImage ? (
+          <img
+            src={sizedImage(image_url, 600)}
+            alt={title}
+            style={styles.img}
+            width="600"
+            height="220"
+            loading="lazy"
+            decoding="async"
+            onError={() => setImgFailed(true)}
+          />
+        ) : (
+          // Fallback keeps the grid aligned instead of showing the browser's
+          // broken-image icon at whatever size it likes.
+          <div style={styles.imgFallback} role="img" aria-label={`${title} — no photo available`}>
+            <span style={styles.fallbackMark} aria-hidden="true">🍽️</span>
+            <span style={styles.fallbackText}>No photo yet</span>
+          </div>
+        )}
       </Link>
-      <h1 style={styles.title}>{title}</h1>
-      <div style={styles.interBox}>
-        {/* <img style={styles.starImage} src={star_img} /> */}
-        {/* <button>{heart}</button> */}
-        <span>{avg_rating} stars</span>
-        <Link to={`/recipe/${id}/instructions`} style={styles.stepsLink}>
-          Directions
+
+      <div style={styles.body}>
+        <Link to={`/recipe/${id}`} style={styles.titleLink}>
+          <h2 style={styles.title}>{title}</h2>
         </Link>
-        <button
-          onClick={() => onToggle(id, isFavorited)}
-          style={styles.button}
-          aria-pressed={isFavorited}
-          aria-label={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
-        >
-          <svg
-            viewBox="0 0 24 24"
-            style={styles.heart}
-            fill={isFavorited ? '#d92d3c' : 'none'}
-            stroke={isFavorited ? '#d92d3c' : '#888888'}
-            strokeWidth="2"
-            strokeLinejoin="round"
-          >
-            <path d="M12 20.5s-7.5-4.7-7.5-10A4.2 4.2 0 0 1 12 7.6a4.2 4.2 0 0 1 7.5 2.9c0 5.3-7.5 10-7.5 10z" />
-          </svg>
-        </button>
+
+        <div style={styles.interBox}>
+          {hasRating ? (
+            <span style={styles.rating}>
+              <span aria-hidden="true" style={styles.star}>★</span>
+              {rating.toFixed(1)}
+            </span>
+          ) : (
+            <span style={styles.noRating}>Not rated yet</span>
+          )}
+
+          <div style={styles.actions}>
+            <Link to={`/recipe/${id}/instructions`} style={styles.stepsLink} className="btn">
+              Directions
+            </Link>
+            <button
+              type="button"
+              onClick={() => onToggle(id, isFavorited)}
+              style={styles.favBtn}
+              disabled={!loggedIn}
+              title={loggedIn ? undefined : 'Log in to save favorites'}
+              aria-pressed={isFavorited}
+              aria-label={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
+            >
+              <svg
+                viewBox="0 0 24 24"
+                style={styles.heart}
+                fill={isFavorited ? colors.ink : 'none'}
+                stroke={isFavorited ? colors.ink : colors.textFaint}
+                strokeWidth="2"
+                strokeLinejoin="round"
+              >
+                <path d="M12 20.5s-7.5-4.7-7.5-10A4.2 4.2 0 0 1 12 7.6a4.2 4.2 0 0 1 7.5 2.9c0 5.3-7.5 10-7.5 10z" />
+              </svg>
+            </button>
+          </div>
+        </div>
       </div>
-      {/* <Link to={`/recipe/${id}`} style={styles.btn}>Recipe</Link> */}
-    </div>
+    </article>
   )
 }
 
-export default Card;
+// 32 cards re-rendered on every keystroke in the search box. Their props are
+// primitives, so a shallow compare is enough to skip the ones that did not
+// change.
+export default memo(Card);
 
 const styles = {
   container: {
-    width: '240px',
-    minHeight: '250px',
-    border: 'solid black',
-    borderRadius: '10px',
-    margin: '0 auto',
-    marginBottom: '30px',
-    padding:'10px',
+    ...card,
     display: 'flex',
     flexDirection: 'column',
-    textDecoration: 'none',
+    overflow: 'hidden',
+    height: '100%',
   },
-  title: {
-    fontSize: '20px',
+  imgLink: {
+    display: 'block',
     textDecoration: 'none',
-    color: 'black',
   },
   img: {
     display: 'block',
-    // width: '150px',
-    width: '200px',
-    height: '150px',
-    // width: '80%',
-    borderRadius: '10px',
-    margin: '0 auto',
-    marginTop: '5px',
-    marginBottom: '5px',
+    width: '100%',
+    height: '220px',
+    objectFit: 'cover',
+    background: colors.surfaceAlt,
   },
-  btn:{
-    display:'block',
-    width: '40%',
-    textAlign: 'center',
-    margin: '0 auto',
-    border: 'solid black',
-    borderWidth: '1px',
-    padding: '15px',
-    borderRadius: '10px',
-    fontSize: '20px',
-    fontWeight: '700',
-    color: 'black',
+  imgFallback: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: space.xs,
+    width: '100%',
+    height: '220px',
+    background: colors.surfaceAlt,
+    borderBottom: `1px solid ${colors.border}`,
+    color: colors.textFaint,
+  },
+  fallbackMark: {
+    fontSize: '28px',
+    opacity: 0.7,
+  },
+  fallbackText: {
+    fontSize: font.size.xs,
+  },
+  body: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: space.md,
+    padding: space.lg,
+    flex: 1,
+  },
+  titleLink: {
     textDecoration: 'none',
+    color: 'inherit',
   },
-  starImage: {
-    width: '40%',
-    display: 'block',
+  title: {
+    margin: 0,
+    fontSize: font.size.lg,
+    fontWeight: font.weight.semibold,
+    color: colors.text,
+    lineHeight: 1.35,
+    // Keep every card's title block the same height so the footers line up.
+    display: '-webkit-box',
+    WebkitLineClamp: 2,
+    WebkitBoxOrient: 'vertical',
+    overflow: 'hidden',
   },
   interBox: {
-    // border: 'solid black',
     display: 'flex',
-    justifyContent: "space-between",
-    marginTop: 'auto',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    color: 'black',
-    fontSize: '20px',
+    gap: space.sm,
+    marginTop: 'auto',
+  },
+  rating: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: space.xs,
+    fontSize: font.size.md,
+    fontWeight: font.weight.semibold,
+    color: colors.text,
+  },
+  star: {
+    color: colors.ink,
+  },
+  noRating: {
+    fontSize: font.size.sm,
+    color: colors.textFaint,
+  },
+  actions: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: space.xs,
   },
   stepsLink: {
-    fontSize: '16px',
-    color: 'black',
-    textDecoration: 'none',
-    border: '1px solid black',
-    padding: '4px',
-    borderRadius: '5px',
-    // textDecoration: 'underline',
+    ...button.secondary,
   },
-  heart: {
-    width: "24px",
-    height: "24px",
-    display: "block",
-  },
-  button: {
+  favBtn: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '40px',
+    height: '40px',
     background: 'none',
     border: 'none',
-    padding: '4px',
+    padding: 0,
     cursor: 'pointer',
     lineHeight: 0,
+    borderRadius: radius.sm,
+  },
+  heart: {
+    width: '26px',
+    height: '26px',
+    display: 'block',
   },
 }

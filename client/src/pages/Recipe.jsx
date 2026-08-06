@@ -1,8 +1,12 @@
-// import react from 'react'
 import api from "../services/api.jsx"
 import toSteps from "../utils/steps.js"
 import { useState, useEffect } from 'react'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
+import Loading from '../components/Loading.jsx'
+import { useToast } from '../components/Toast.jsx'
+import { button, card, colors, font, heading, radius, space } from '../styles/theme.js'
+import { sizedImage } from '../utils/image.js'
+import { buildPantry, summarise, LABELS, HAVE, LOW, MISSING, UNKNOWN } from '../utils/pantry.js'
 
 // pg returns NUMERIC columns as strings ("2.00"), so trim the trailing zeros
 const formatQuantity = (quantity) => {
@@ -11,18 +15,38 @@ const formatQuantity = (quantity) => {
 }
 
 const Recipe = () => {
-  const [recipe, setRecipe] = useState([])
+  const [recipe, setRecipe] = useState(null)
   const [ingredients, setIngredients] = useState([])
+  const [kitchen, setKitchen] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [copied, setCopied] = useState(false)
+  const [imgFailed, setImgFailed] = useState(false)
   const params = useParams()
+  const toast = useToast()
 
   useEffect(() => {
     const loadRecipe = async () => {
-      const data = await api.getRecipe(params.id)
-      setRecipe(data)
+      setLoading(true)
+      setError(null)
+      try {
+        // All three at once — these used to run one after another.
+        const [data, recipeIngredients, kitchenRows] = await Promise.all([
+          api.getRecipe(params.id),
+          api.getRecipeIngredients(params.id),
+          // This route is login-gated, so the kitchen is always available.
+          // A failure here shouldn't cost you the recipe itself.
+          api.getKitchen().catch(() => []),
+        ])
 
-      const recipeIngredients = await api.getRecipeIngredients(params.id)
-      setIngredients(recipeIngredients)
+        setRecipe(data)
+        setIngredients(Array.isArray(recipeIngredients) ? recipeIngredients : [])
+        setKitchen(Array.isArray(kitchenRows) ? kitchenRows : [])
+      } catch (err) {
+        setError(err.message)
+      } finally {
+        setLoading(false)
+      }
     }
 
     loadRecipe()
@@ -39,58 +63,164 @@ const Recipe = () => {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch (err) {
-      console.error(err)
+      toast.error("Couldn't copy to your clipboard.")
     }
   }
 
-  return (
-    <div>
-      <h1>{recipe?.title}</h1>
-      <div style={styles.descrBox}>
-        {/* <h1>Description</h1> */}
-        <div style={styles.imgBox}>
-          <img style={styles.img} src={recipe?.image_url}/>
-        </div>
-        <div style={styles.infoBox}>
-          <hr />
-          <p>{recipe?.description}</p>
-          <hr />
-        </div>
-      </div>
-      <div style={styles.recipeBox}>
+  if (loading) {
+    return <Loading label="Loading recipe…" size="lg" />
+  }
 
-        <div style={styles.ingrBox}>
-          <h1>Ingredients</h1>
-          <div style={styles.innerIngr}>
-            {ingredients.length === 0 && (
-              <p style={styles.empty}>No ingredients listed for this recipe.</p>
+  if (error || !recipe) {
+    return (
+      <div style={styles.errorBox} role="alert">
+        <p style={styles.errorTitle}>We couldn’t load this recipe</p>
+        <p style={styles.errorText}>{error ?? 'It may have been removed.'}</p>
+        <Link to="/" className="btn" style={styles.secondaryBtn}>
+          Back to recipes
+        </Link>
+      </div>
+    )
+  }
+
+  const pantrySummary = summarise(buildPantry(kitchen), ingredients)
+  const rating = recipe.avg_rating == null ? null : Number(recipe.avg_rating)
+  const hasRating = rating != null && !Number.isNaN(rating)
+  const showImage = recipe.image_url && !imgFailed
+
+  return (
+    <article>
+      <Link to="/" style={styles.backLink} className="nav-link">
+        ← All recipes
+      </Link>
+
+      {/* Hero: image and the recipe's identity side by side, stacking on
+          narrow screens via flex-wrap. */}
+      <header style={styles.hero}>
+        <div style={styles.heroMedia}>
+          {showImage ? (
+            <img
+              src={sizedImage(recipe.image_url, 900)}
+              alt={recipe.title}
+              style={styles.img}
+              width="900"
+              height="320"
+              decoding="async"
+              onError={() => setImgFailed(true)}
+            />
+          ) : (
+            <div style={styles.imgFallback} role="img" aria-label="No photo available">
+              <span style={styles.fallbackMark} aria-hidden="true">🍽️</span>
+              <span style={styles.fallbackText}>No photo yet</span>
+            </div>
+          )}
+        </div>
+
+        <div style={styles.heroBody}>
+          <h1 style={styles.title}>{recipe.title}</h1>
+
+          <div style={styles.metaRow}>
+            {hasRating ? (
+              <span style={styles.rating}>
+                <span aria-hidden="true">★</span> {rating.toFixed(1)}
+              </span>
+            ) : (
+              <span style={styles.metaMuted}>Not rated yet</span>
             )}
-            {ingredients.map((ingredient) => (
-              <div key={ingredient.id} style={styles.ingrRow}>
-                <span>{ingredient.name}</span>
-                <span style={styles.amount}>
-                  {formatQuantity(ingredient.quantity)} {ingredient.unit}
-                </span>
-              </div>
-            ))}
+            <span style={styles.metaDot} aria-hidden="true">·</span>
+            <span style={styles.metaMuted}>
+              {ingredients.length} {ingredients.length === 1 ? 'ingredient' : 'ingredients'}
+            </span>
+            <span style={styles.metaDot} aria-hidden="true">·</span>
+            <span style={styles.metaMuted}>
+              {steps.length} {steps.length === 1 ? 'step' : 'steps'}
+            </span>
+          </div>
+
+          {recipe.description && <p style={styles.description}>{recipe.description}</p>}
+
+          <div style={styles.heroActions}>
+            <Link
+              to={`/recipe/${params.id}/instructions`}
+              className="btn"
+              style={styles.primaryBtn}
+            >
+              Start cooking
+            </Link>
+            <Link to={`/edit/recipe/${params.id}`} className="btn" style={styles.secondaryBtn}>
+              Edit recipe
+            </Link>
           </div>
         </div>
+      </header>
 
-        <div style={styles.dirBox}>
-          <div style={styles.dirHeader}>
-            <h1>Directions</h1>
+      <div style={styles.columns}>
+        <section style={styles.panel}>
+          <div style={styles.panelHeader}>
+            <h2 style={styles.panelTitle}>Ingredients</h2>
+            {ingredients.length > 0 && (
+              <span style={styles.tally}>
+                {pantrySummary.have} of {pantrySummary.total} in your kitchen
+              </span>
+            )}
+          </div>
+
+          {ingredients.length === 0 ? (
+            <p style={styles.empty}>No ingredients listed for this recipe.</p>
+          ) : (
+            <ul style={styles.ingrList}>
+              {ingredients.map((ingredient, index) => {
+                const status = pantrySummary.statuses[index]
+                const missing = status === MISSING
+                return (
+                  <li key={ingredient.id} style={styles.ingrRow}>
+                    <span style={styles.ingrName}>
+                      <span
+                        style={missing ? styles.markMissing : styles.markHave}
+                        aria-hidden="true"
+                      >
+                        {missing ? '○' : '✓'}
+                      </span>
+                      <span style={missing ? styles.nameMissing : undefined}>
+                        {ingredient.name}
+                      </span>
+                      <span style={styles.srOnly}>{LABELS[status]}</span>
+                    </span>
+                    <span style={styles.amount}>
+                      {formatQuantity(ingredient.quantity)} {ingredient.unit}
+                      {status === LOW && <span style={styles.flag}>low</span>}
+                    </span>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+
+          {pantrySummary.missing > 0 && (
+            <p style={styles.shopHint}>
+              You’re missing {pantrySummary.missing}{' '}
+              {pantrySummary.missing === 1 ? 'ingredient' : 'ingredients'} —{' '}
+              <Link to="/addIngredient" style={styles.shopLink}>add to your kitchen</Link>
+            </p>
+          )}
+        </section>
+
+        <section style={styles.panel}>
+          <div style={styles.panelHeader}>
+            <h2 style={styles.panelTitle}>Directions</h2>
             {steps.length > 0 && (
               <button
+                type="button"
                 onClick={copyInstructions}
+                className="btn"
                 style={styles.copyBtn}
-                title="Copy instructions"
                 aria-label="Copy instructions"
               >
                 <svg
                   viewBox="0 0 24 24"
                   style={styles.copyIcon}
                   fill="none"
-                  stroke={copied ? '#2e7d32' : '#444444'}
+                  stroke="currentColor"
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -104,154 +234,282 @@ const Recipe = () => {
                     </>
                   )}
                 </svg>
-                <span style={copied ? styles.copiedText : styles.copyText}>
-                  {copied ? 'Copied!' : 'Copy'}
-                </span>
+                {copied ? 'Copied' : 'Copy'}
               </button>
             )}
           </div>
-          <div style={styles.innerDir}>
-            {steps.length === 0 && (
-              <p style={styles.empty}>No instructions listed for this recipe.</p>
-            )}
+
+          {steps.length === 0 ? (
+            <p style={styles.empty}>No instructions listed for this recipe.</p>
+          ) : (
             <ol style={styles.list}>
               {steps.map((step, index) => (
-                <li key={index} style={styles.step}>{step}</li>
+                <li key={index} style={styles.step}>
+                  <span style={styles.stepNumber} aria-hidden="true">{index + 1}</span>
+                  <span style={styles.stepText}>{step}</span>
+                </li>
               ))}
             </ol>
-          </div>
-        </div>
-
+          )}
+        </section>
       </div>
-    </div>
+    </article>
   )
 }
 
 export default Recipe
 
 const styles = {
-  recipeBox: {
-    display: 'flex',
-    gap: 10,
-    width: '90%',
-    // border: 'solid black',
-    // padding: '20px',
-    boxSizing: 'border-box',
-    marginLeft: '10px',
+  backLink: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    marginBottom: space.md,
+    marginLeft: `-${space.sm}`,
+    padding: `${space.xs} ${space.sm}`,
+    fontSize: font.size.sm,
+    fontWeight: font.weight.semibold,
+    color: colors.textMuted,
+    textDecoration: 'none',
+    borderRadius: radius.sm,
   },
-  descrBox: {
+  hero: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: space.xl,
+    marginBottom: space.xl,
+  },
+  heroMedia: {
+    flex: '1 1 320px',
+    maxWidth: '460px',
+  },
+  img: {
+    display: 'block',
+    width: '100%',
+    height: '320px',
+    objectFit: 'cover',
+    borderRadius: radius.lg,
+    border: `1px solid ${colors.border}`,
+    background: colors.surfaceAlt,
+  },
+  imgFallback: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: space.xs,
+    width: '100%',
+    height: '320px',
+    borderRadius: radius.lg,
+    border: `1px solid ${colors.border}`,
+    background: colors.surfaceAlt,
+    color: colors.textFaint,
+  },
+  fallbackMark: {
+    fontSize: '40px',
+    opacity: 0.7,
+  },
+  fallbackText: {
+    fontSize: font.size.sm,
+  },
+  heroBody: {
+    flex: '1 1 360px',
+    minWidth: 0,
+  },
+  title: {
+    ...heading.h1,
+    marginBottom: space.sm,
+  },
+  metaRow: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: space.sm,
+    marginBottom: space.md,
+    fontSize: font.size.sm,
+  },
+  rating: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: space.xs,
+    fontWeight: font.weight.bold,
+    color: colors.ink,
+  },
+  metaMuted: {
+    color: colors.textMuted,
+  },
+  metaDot: {
+    color: colors.textFaint,
+  },
+  description: {
+    margin: `0 0 ${space.lg}`,
+    fontSize: font.size.md,
+    lineHeight: 1.6,
+    color: colors.textMuted,
+    maxWidth: '60ch',
+  },
+  heroActions: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: space.sm,
+  },
+  primaryBtn: {
+    ...button.primary,
+  },
+  secondaryBtn: {
+    ...button.secondary,
+  },
+  // Two equal columns that collapse to one when there isn't room.
+  columns: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+    gap: space.lg,
+    alignItems: 'start',
+  },
+  panel: {
+    ...card,
+    padding: space.lg,
+  },
+  panelHeader: {
     display: 'flex',
     alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: 60,
-    marginLeft: '2px',
-    fontSize: '20px',
-    // border: 'solid black',
-    // borderRadius: '10px',
-    // borderWidth: '1px',
-    // paddingLeft: '5px',
-    padding: '10px',
+    justifyContent: 'space-between',
+    gap: space.sm,
+    marginBottom: space.md,
   },
-  ingrBox: {
-    width: '45%',
-    marginRight: '10px',
+  panelTitle: {
+    ...heading.h2,
+    margin: 0,
   },
-  dirBox: {
-    width: '45%',
-  },
-  innerIngr: {
-    display: 'flex',
-    flexDirection: 'column',
-    border: 'solid black',
-    borderWidth: '1px',
-    borderRadius: '10px',
-    width: '100%',
-    height: '500px',
-    padding: '10px',
-    boxSizing: 'border-box',
-    overflowY: 'auto',
-  },
-  innerDir: {
-    display: 'flex',
-    flexDirection: 'column',
-    border: 'solid black',
-    borderWidth: '1px',
-    borderRadius: '10px',
-    width: '100%',
-    height: '500px',
-    padding: '10px',
-    boxSizing: 'border-box',
-    overflowY: 'auto',
+  ingrList: {
+    listStyle: 'none',
+    margin: `${space.md} 0 0`,
+    padding: 0,
   },
   ingrRow: {
     display: 'flex',
     justifyContent: 'space-between',
-    fontSize: '18px',
-    padding: '8px 4px',
-    borderBottom: '1px solid #ddd',
+    gap: space.md,
+    fontSize: font.size.md,
+    padding: `${space.sm} 0`,
+    borderBottom: `1px solid ${colors.border}`,
   },
   amount: {
-    fontWeight: '700',
-  },
-  dirHeader: {
-    display: 'flex',
+    display: 'inline-flex',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: '10px',
+    gap: space.sm,
+    fontWeight: font.weight.bold,
+    whiteSpace: 'nowrap',
+  },
+  tally: {
+    fontSize: font.size.sm,
+    fontWeight: font.weight.semibold,
+    color: colors.textMuted,
+  },
+  ingrName: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: space.sm,
+  },
+  markHave: {
+    color: colors.ink,
+    fontWeight: font.weight.bold,
+  },
+  // Monochrome palette, so a missing item is an open circle and greyed text
+  // rather than a red cross.
+  markMissing: {
+    color: colors.textFaint,
+  },
+  nameMissing: {
+    color: colors.textFaint,
+  },
+  flag: {
+    padding: '1px 6px',
+    fontSize: font.size.xs,
+    fontWeight: font.weight.semibold,
+    textTransform: 'uppercase',
+    letterSpacing: '0.4px',
+    color: colors.textMuted,
+    background: colors.surfaceAlt,
+    border: `1px solid ${colors.border}`,
+    borderRadius: radius.sm,
+  },
+  shopHint: {
+    margin: `${space.md} 0 0`,
+    fontSize: font.size.sm,
+    color: colors.textMuted,
+  },
+  shopLink: {
+    color: colors.ink,
+    fontWeight: font.weight.semibold,
+  },
+  srOnly: {
+    position: 'absolute',
+    width: '1px',
+    height: '1px',
+    padding: 0,
+    margin: '-1px',
+    overflow: 'hidden',
+    clip: 'rect(0, 0, 0, 0)',
+    whiteSpace: 'nowrap',
+    border: 0,
   },
   copyBtn: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px',
-    background: 'none',
-    border: 'solid black',
-    borderWidth: '1px',
-    borderRadius: '8px',
-    padding: '8px 12px',
-    cursor: 'pointer',
+    ...button.secondary,
+    ...button.small,
   },
   copyIcon: {
-    width: '18px',
-    height: '18px',
+    width: '16px',
+    height: '16px',
     display: 'block',
   },
-  copyText: {
-    fontSize: '16px',
-    color: '#444444',
-  },
-  copiedText: {
-    fontSize: '16px',
-    color: '#2e7d32',
-    fontWeight: '700',
-  },
   list: {
-    paddingLeft: '25px',
+    listStyle: 'none',
+    padding: 0,
     margin: 0,
   },
   step: {
-    fontSize: '18px',
-    marginBottom: '15px',
-    lineHeight: '1.5',
+    display: 'flex',
+    gap: space.md,
+    padding: `${space.sm} 0`,
+    borderBottom: `1px solid ${colors.border}`,
+  },
+  // Ink-filled numeral instead of a default marker — reads as a checklist.
+  stepNumber: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+    width: '26px',
+    height: '26px',
+    borderRadius: '50%',
+    background: colors.ink,
+    color: '#ffffff',
+    fontSize: font.size.xs,
+    fontWeight: font.weight.bold,
+  },
+  stepText: {
+    fontSize: font.size.md,
+    lineHeight: 1.6,
   },
   empty: {
-    fontSize: '18px',
-    color: '#666',
+    margin: `${space.md} 0 0`,
+    fontSize: font.size.sm,
+    color: colors.textFaint,
   },
-  img: {
-    display: 'block',
-    width: '200px',
+  errorBox: {
+    ...card,
+    textAlign: 'center',
+    padding: `${space.xxl} ${space.md}`,
+    border: `2px solid ${colors.ink}`,
   },
-  imgBox: {
-    border: 'solid black',
-    borderWidth: '1px',
-    borderRadius: '10px',
-    padding: '10px',
+  errorTitle: {
+    margin: `0 0 ${space.xs}`,
+    fontSize: font.size.lg,
+    fontWeight: font.weight.semibold,
   },
-  infoBox: {
-    // border: 'solid black',
-    // borderWidth: '1px',
-    // borderRadius: '10px',
-    // padding: '10px',
+  errorText: {
+    margin: `0 0 ${space.md}`,
+    fontSize: font.size.sm,
+    color: colors.textMuted,
   },
-
 }

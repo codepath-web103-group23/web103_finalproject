@@ -1,48 +1,12 @@
-const API_URL = `${import.meta.env.VITE_API_URL}/api`
+import { request } from './http.js'
 
-const createFavorite = async (recipe_id) => {
-  try {
-    const response = await fetch(`${API_URL}/create/favorite`, {
-      method: "POST",
-      credentials: 'include',
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        recipe_id: recipe_id
-      }),
-    })
-    console.log('creating favorite ...')
-    const data = await response.json()
-    return data
-  } catch (err) {
-    console.log(err)
-  }
-}
+const createFavorite = (recipe_id) =>
+  request('/create/favorite', { method: 'POST', body: { recipe_id } })
 
-const getFavorites = async () => {
-  try {
-    const result = await fetch(`${API_URL}/favorites`, { credentials: 'include' })
-    const data = await result.json()
-    return data
-  } catch (err) {
-    console.log(err)
-  }
-}
+const getFavorites = () => request('/favorites')
 
-const deleteFavorite = async (id) => {
-  try {
-    console.log(id)
-    const response = await fetch(`${API_URL}/delete/favorite/${id}`, {
-      method: "DELETE",
-      credentials: 'include',
-    })
-    const data = await response.json()
-    return data
-  } catch (err) {
-    console.log(err)
-  }
-}
+const deleteFavorite = (id) =>
+  request(`/delete/favorite/${id}`, { method: 'DELETE' })
 
 export default {
   createFavorite,

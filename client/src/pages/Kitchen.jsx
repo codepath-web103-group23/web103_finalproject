@@ -1,119 +1,163 @@
-import Ingredient from '../components/Ingredient.jsx'
-import Search from '../components/SearchBar.jsx'
 import api from '../services/api.jsx'
 import { useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
+import Loading from '../components/Loading.jsx'
+import { useToast } from '../components/Toast.jsx'
+import { button, card, colors, font, heading, radius, space } from '../styles/theme.js'
 
 const Kitchen = () => {
-  const [selectedItem, setSelectedItem] = useState(null);
-
-  const [ingredients, setIngredients] = useState([
-    // {
-    //   name: "Eggs",
-    //   zone: "Refrigerator",
-    //   quantity: 12,
-    // },
-    // { 
-    //   name: "Rice",
-    //   zone: "Pantry",
-    //   quantity: "5 lbs",
-    // },
-  ]);
+  const [ingredients, setIngredients] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  // ids currently being removed — keeps the row's button disabled so a slow
+  // delete can't be fired twice.
+  const [removing, setRemoving] = useState([])
 
   const navigate = useNavigate()
-
-
-  const handleAddItem = () => {
-    navigate('/addIngredient')
-  }
-
-  const handleAddRecipe = () => {
-    navigate('/addRecipe')
-  }
-
-  const handleEdit = (id) => {
-    navigate(`/editIngredient/${id}`)
-  }
+  const toast = useToast()
 
   useEffect(() => {
     const load = async () => {
-      const data = await api.getKitchen();
-      setIngredients(data)
+      setLoading(true)
+      try {
+        const data = await api.getKitchen()
+        setIngredients(Array.isArray(data) ? data : [])
+      } catch (err) {
+        setError(err.message)
+      } finally {
+        setLoading(false)
+      }
     }
     load()
   }, [])
 
-  const handleRemove = async (ingredientId) => {
-    await api.removeFromKitchen(ingredientId)
-    setIngredients((prev) => prev.filter((i) => i.ingredient_id !== ingredientId))
+  const handleRemove = async (ingredientId, name) => {
+    setRemoving((prev) => [...prev, ingredientId])
+    try {
+      await api.removeFromKitchen(ingredientId)
+      setIngredients((prev) => prev.filter((i) => i.ingredient_id !== ingredientId))
+      toast.success(`${name} removed from your kitchen`)
+    } catch (err) {
+      toast.error("Couldn't remove that ingredient.")
+    } finally {
+      setRemoving((prev) => prev.filter((x) => x !== ingredientId))
+    }
   }
-
-
 
   return (
     <div>
-      {/* <div style={styles.topContainer}> */}
-      {/*   <h1>My Kitchen</h1> */}
-      {/*   <button style={styles.addButton}>+Add Ingredient</button> */}
-      {/* </div> */}
-      {/* <div style={styles.ingredContainer}> */}
-      {/*   <Ingredient></Ingredient> */}
-      {/*   <Ingredient></Ingredient> */}
-      {/**/}
-      {/* </div> */}
-
-      <h1 style={styles.pageTitle}>My Kitchen</h1>
-      
-      <div style={styles.topContainer}>
-        <label style={styles.tableTitle}>Inventory</label>
-        <div style={styles.innerTopCont}>
-          {/* <Search */}
-          {/*   items={ingredients} */}
-          {/*   onSelect={setSelectedItem} */}
-          {/* ></Search> */}
-          <button style={styles.addbtn} onClick={handleAddItem}>+Add Ingredient</button>
-          <button style={styles.addbtn} onClick={handleAddRecipe}>+Add Recipe</button>
+      <header style={styles.header}>
+        <div>
+          <h1 style={styles.pageTitle}>My kitchen</h1>
+          <p style={styles.subtitle}>
+            {loading
+              ? 'Loading your inventory…'
+              : `${ingredients.length} ${ingredients.length === 1 ? 'ingredient' : 'ingredients'} on hand`}
+          </p>
         </div>
-      </div>
+        <div style={styles.headerActions}>
+          <button
+            type="button"
+            className="btn"
+            style={styles.secondaryBtn}
+            onClick={() => navigate('/addRecipe')}
+          >
+            Add recipe
+          </button>
+          <button
+            type="button"
+            className="btn"
+            style={styles.primaryBtn}
+            onClick={() => navigate('/addIngredient')}
+          >
+            Add ingredient
+          </button>
+        </div>
+      </header>
 
-      <table style={styles.table}>
-        <thead>
-          <tr>
-            <th style={styles.header}>Ingredient Name</th>
-            <th style={styles.header}>Category</th>
-            <th style={styles.header}>Calories</th>
-            <th style={styles.header}>Dietary facts</th>
-            <th style={styles.header}>Quantity</th>
-            <th style={styles.header}>Edit</th>
-            <th style={styles.header}>Remove</th>
-          </tr>
-        </thead>
+      {loading && <Loading label="Loading your kitchen…" size="lg" />}
 
-        <tbody>
-          {Array.isArray(ingredients) && ingredients.map((ingredient) => (
-            <tr key={ingredient.id}>
-              <td style={styles.cell}>{ingredient.name}</td>
-              <td style={styles.cell}>{ingredient.category}</td>
-              <td style={styles.cell}>{ingredient.calories}</td>
-              <td style={styles.cell}>{ingredient.dietary_tags}</td>
-              <td style={styles.cell}>{ingredient.quantity ? `${ingredient.quantity} ${ingredient.unit || ''}` : ''}</td>
-              <td style={styles.cell}>
-                <button
-                  style={styles.btn}
-                  onClick={() => handleEdit(ingredient.ingredient_id)}
-                >Edit</button>
-              </td>
-              <td style={styles.cell}>
-                <button
-                  style={styles.btn}
-                  onClick={() => handleRemove(ingredient.ingredient_id)}
-                >Remove</button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {!loading && error && (
+        <div style={styles.errorBox} role="alert">
+          {error}
+        </div>
+      )}
 
+      {!loading && !error && ingredients.length === 0 && (
+        <div style={styles.empty}>
+          <p style={styles.emptyTitle}>Your kitchen is empty</p>
+          <p style={styles.emptyText}>
+            This list is yours alone — the shared ingredient catalog can be full while your
+            kitchen is still empty. Pick what you actually have on hand and recipes can match
+            against it.
+          </p>
+          <button
+            type="button"
+            className="btn"
+            style={styles.primaryBtn}
+            onClick={() => navigate('/addIngredient')}
+          >
+            Stock your kitchen
+          </button>
+        </div>
+      )}
+
+      {!loading && !error && ingredients.length > 0 && (
+        <div style={styles.tableWrap}>
+          <table style={styles.table}>
+            <thead>
+              <tr>
+                <th style={styles.th}>Ingredient</th>
+                <th style={styles.th}>Category</th>
+                <th style={styles.th}>Calories</th>
+                <th style={styles.th}>Dietary facts</th>
+                <th style={styles.th}>Quantity</th>
+                <th style={{ ...styles.th, ...styles.actionsCol }}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {ingredients.map((ingredient) => {
+                const isRemoving = removing.includes(ingredient.ingredient_id)
+                return (
+                  <tr key={ingredient.id}>
+                    <td style={{ ...styles.cell, ...styles.nameCell }}>{ingredient.name}</td>
+                    <td style={styles.cell}>{ingredient.category || '—'}</td>
+                    <td style={styles.cell}>{ingredient.calories ?? '—'}</td>
+                    <td style={styles.cell}>{ingredient.dietary_tags || '—'}</td>
+                    <td style={styles.cell}>
+                      {ingredient.quantity
+                        ? `${ingredient.quantity} ${ingredient.unit || ''}`.trim()
+                        : '—'}
+                    </td>
+                    <td style={{ ...styles.cell, ...styles.actionsCol }}>
+                      <div style={styles.rowActions}>
+                        <button
+                          type="button"
+                          className="btn"
+                          style={styles.rowBtn}
+                          disabled={isRemoving}
+                          onClick={() => navigate(`/editIngredient/${ingredient.ingredient_id}`)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          className="btn"
+                          style={styles.rowBtnDanger}
+                          disabled={isRemoving}
+                          onClick={() => handleRemove(ingredient.ingredient_id, ingredient.name)}
+                        >
+                          {isRemoving ? 'Removing…' : 'Remove'}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   )
 }
@@ -121,64 +165,101 @@ const Kitchen = () => {
 export default Kitchen
 
 const styles = {
-  pageTitle: {
-    marginLeft: '10px',
-  },
-  topContainer: {
+  header: {
     display: 'flex',
+    flexWrap: 'wrap',
+    alignItems: 'flex-end',
     justifyContent: 'space-between',
-    padding: '10px',
+    gap: space.md,
+    marginBottom: space.lg,
   },
-  innerTopCont: {
-    // padding: '10px',
+  pageTitle: {
+    ...heading.h1,
   },
-  addbtn: {
-    cursor: 'pointer',
-    marginLeft: '5px',
-    fontSize: '15px',
-    width: '250px',
-    backgroundColor: '#333333',
-    color: 'white',
-    border: 'solid black',
-    padding: '10px',
-    borderRadius: '5px',
-    borderWidth: '1px',
-    textDecoration: 'none',
+  subtitle: {
+    margin: 0,
+    fontSize: font.size.sm,
+    color: colors.textMuted,
   },
-  addButton: {
-    // backgroundColor: "#27F561",
-    fontSize: '15px',
-    color: 'black',
-    border: 'solid black',
-    padding: '20px',
-    borderRadius: '5px',
-    borderWidth: '1px',
-    textDecoration: 'none',
-    margin: '10px',
-  },
-  ingredContainer: {
+  headerActions: {
     display: 'flex',
-    // padding: '15px',
-    gap: '15px',
+    gap: space.sm,
+    flexWrap: 'wrap',
+  },
+  primaryBtn: {
+    ...button.primary,
+  },
+  secondaryBtn: {
+    ...button.secondary,
+  },
+  // Wide tables scroll inside their own box rather than pushing the page out.
+  tableWrap: {
+    ...card,
+    overflowX: 'auto',
   },
   table: {
-    width: "100%",
-    borderCollapse: "collapse",
+    width: '100%',
+    borderCollapse: 'collapse',
+    fontSize: font.size.sm,
   },
-  header: {
-    backgroundColor: "#333",
-    color: "white",
-    padding: "12px",
-    textAlign: "left",
+  th: {
+    padding: `${space.sm} ${space.md}`,
+    textAlign: 'left',
+    fontSize: font.size.xs,
+    fontWeight: font.weight.bold,
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px',
+    color: colors.textMuted,
+    background: colors.surfaceAlt,
+    borderBottom: `1px solid ${colors.border}`,
+    whiteSpace: 'nowrap',
   },
   cell: {
-    border: "1px solid #ddd",
-    padding: "12px",
+    padding: `${space.md}`,
+    borderBottom: `1px solid ${colors.border}`,
+    color: colors.text,
+    verticalAlign: 'middle',
   },
-  tableTitle: {
-    fontSize: '30px',
+  nameCell: {
+    fontWeight: font.weight.semibold,
   },
-  btn: {
-    cursor: 'pointer',
-  }
+  actionsCol: {
+    textAlign: 'right',
+    whiteSpace: 'nowrap',
+  },
+  rowActions: {
+    display: 'inline-flex',
+    gap: space.xs,
+  },
+  rowBtn: {
+    ...button.secondary,
+    ...button.small,
+  },
+  rowBtnDanger: {
+    ...button.danger,
+    ...button.small,
+  },
+  empty: {
+    ...card,
+    textAlign: 'center',
+    padding: `${space.xxl} ${space.md}`,
+    borderStyle: 'dashed',
+  },
+  emptyTitle: {
+    margin: `0 0 ${space.xs}`,
+    fontSize: font.size.lg,
+    fontWeight: font.weight.semibold,
+  },
+  emptyText: {
+    margin: `0 0 ${space.md}`,
+    fontSize: font.size.sm,
+    color: colors.textMuted,
+  },
+  errorBox: {
+    ...card,
+    padding: space.lg,
+    border: `2px solid ${colors.ink}`,
+    background: colors.surfaceAlt,
+    fontSize: font.size.sm,
+  },
 }

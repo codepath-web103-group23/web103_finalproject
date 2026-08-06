@@ -1,92 +1,166 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../services/api.jsx'
-
-const API_URL = `${import.meta.env.VITE_API_URL}/api`
+import Loading from '../components/Loading.jsx'
+import Modal from '../components/Modal.jsx'
+import { useToast } from '../components/Toast.jsx'
+import { button, card, colors, font, heading, space } from '../styles/theme.js'
 
 const Admin = () => {
   const [recipes, setRecipes] = useState([])
-  const [form, setForm] = useState({ title: '', description: '', instructions: '', image_url: '' })
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  // The recipe queued for deletion — deleting is destructive, so it goes
+  // through a confirm dialog rather than firing straight off the button.
+  const [pendingDelete, setPendingDelete] = useState(null)
+  const [deleting, setDeleting] = useState(false)
 
   const navigate = useNavigate()
-
-  const goToEdit = (id) => {
-    navigate(`/edit/recipe/${id}`)
-  }
+  const toast = useToast()
 
   useEffect(() => {
     const load = async () => {
-      const data = await api.getRecipes()
-      setRecipes(data || [])
+      setLoading(true)
+      try {
+        const data = await api.getRecipes()
+        setRecipes(Array.isArray(data) ? data : [])
+      } catch (err) {
+        setError(err.message)
+      } finally {
+        setLoading(false)
+      }
     }
     load()
   }, [])
 
-  const refreshRecipes = async () => {
-    const data = await api.getRecipes()
-    setRecipes(data || [])
-  }
-
-  // const handleChange = (event) => {
-  //   const { name, value } = event.target
-  //   setForm((prev) => ({ ...prev, [name]: value }))
-  // }
-
-  // const handleCreate = async (event) => {
-  //   event.preventDefault()
-  //   await fetch(`${API_URL}/create/recipe`, {
-  //     method: 'POST',
-  //     headers: { 'Content-Type': 'application/json' },
-  //     credentials: 'include',
-  //     body: JSON.stringify(form)
-  //   })
-  //   setForm({ title: '', description: '', instructions: '', image_url: '' })
-  //   refreshRecipes()
-  // }
-
-  const handleDelete = async (id) => {
-    await fetch(`${API_URL}/delete/recipe/${id}`, {
-      method: 'DELETE',
-      credentials: 'include'
-    })
-    setRecipes((prev) => prev.filter((r) => r.id !== id))
+  const confirmDelete = async () => {
+    setDeleting(true)
+    try {
+      // Was a raw fetch() in the component — the only place that bypassed the
+      // services layer.
+      await api.deleteRecipe(pendingDelete.id)
+      setRecipes((prev) => prev.filter((r) => r.id !== pendingDelete.id))
+      toast.success(`"${pendingDelete.title}" deleted`)
+      setPendingDelete(null)
+    } catch (err) {
+      toast.error("Couldn't delete that recipe.")
+    } finally {
+      setDeleting(false)
+    }
   }
 
   return (
     <div>
-      <h1 style={styles.title}>Admin — Manage Recipes</h1>
+      <header style={styles.header}>
+        <div>
+          <h1 style={styles.title}>Admin</h1>
+          <p style={styles.subtitle}>
+            {loading ? 'Loading recipes…' : `${recipes.length} recipes in the catalog`}
+          </p>
+        </div>
+        <button
+          type="button"
+          className="btn"
+          style={styles.primaryBtn}
+          onClick={() => navigate('/addRecipe')}
+        >
+          Add recipe
+        </button>
+      </header>
 
-      {/* <form style={styles.form} onSubmit={handleCreate}> */}
-      {/*   <input name="title" placeholder="Title" value={form.title} onChange={handleChange} style={styles.input} /> */}
-      {/*   <input name="image_url" placeholder="Image URL" value={form.image_url} onChange={handleChange} style={styles.input} /> */}
-      {/*   <input name="description" placeholder="Description" value={form.description} onChange={handleChange} style={styles.input} /> */}
-      {/*   <textarea name="instructions" placeholder="Instructions" value={form.instructions} onChange={handleChange} style={styles.textarea} /> */}
-      {/*   <button type="submit" style={styles.btn}>Create Recipe</button> */}
-      {/* </form> */}
+      {loading && <Loading label="Loading recipes…" size="lg" />}
 
-      <table style={styles.table}>
-        <thead>
-          <tr>
-            <th style={styles.header}>Title</th>
-            <th style={styles.header}>Avg Rating</th>
-            <th style={styles.header}>Delete</th>
-          </tr>
-        </thead>
-        <tbody>
-          {recipes.map((r) => (
-            <tr key={r.id}>
-              <td style={styles.cell}>{r.title}</td>
-              <td style={styles.cell}>{r.avg_rating}</td>
-              <td style={styles.cell}>
-                <div style={styles.btnBox}>
-                  <button style={styles.btn} onClick={() => handleDelete(r.id)}>Delete</button>
-                  <button style={styles.btn} onClick={() => goToEdit(r.id)}>Edit</button>
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {!loading && error && (
+        <div style={styles.errorBox} role="alert">{error}</div>
+      )}
+
+      {!loading && !error && recipes.length === 0 && (
+        <div style={styles.empty}>
+          <p style={styles.emptyTitle}>No recipes yet</p>
+          <p style={styles.emptyText}>Add the first one to get started.</p>
+        </div>
+      )}
+
+      {!loading && !error && recipes.length > 0 && (
+        <div style={styles.tableWrap}>
+          <table style={styles.table}>
+            <thead>
+              <tr>
+                <th style={styles.th}>Title</th>
+                <th style={styles.th}>Avg rating</th>
+                <th style={{ ...styles.th, ...styles.actionsCol }}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {recipes.map((r) => {
+                const rating = r.avg_rating == null ? null : Number(r.avg_rating)
+                return (
+                  <tr key={r.id}>
+                    <td style={{ ...styles.cell, ...styles.nameCell }}>{r.title}</td>
+                    <td style={styles.cell}>
+                      {rating != null && !Number.isNaN(rating) ? rating.toFixed(1) : '—'}
+                    </td>
+                    <td style={{ ...styles.cell, ...styles.actionsCol }}>
+                      <div style={styles.btnBox}>
+                        <button
+                          type="button"
+                          className="btn"
+                          style={styles.rowBtn}
+                          onClick={() => navigate(`/edit/recipe/${r.id}`)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          className="btn"
+                          style={styles.rowBtnDanger}
+                          onClick={() => setPendingDelete(r)}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {pendingDelete && (
+        <Modal
+          title="Delete recipe?"
+          onClose={() => !deleting && setPendingDelete(null)}
+          footer={
+            <>
+              <button
+                type="button"
+                className="btn"
+                style={styles.secondaryBtn}
+                onClick={() => setPendingDelete(null)}
+                disabled={deleting}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn"
+                style={styles.confirmDeleteBtn}
+                onClick={confirmDelete}
+                disabled={deleting}
+              >
+                {deleting ? 'Deleting…' : 'Delete recipe'}
+              </button>
+            </>
+          }
+        >
+          <p style={styles.confirmText}>
+            <strong>{pendingDelete.title}</strong> will be removed for everyone. This can’t be
+            undone.
+          </p>
+        </Modal>
+      )}
     </div>
   )
 }
@@ -94,48 +168,102 @@ const Admin = () => {
 export default Admin
 
 const styles = {
-  title: {
-    marginLeft: '10px',
-  },
-  form: {
+  header: {
     display: 'flex',
-    flexDirection: 'column',
-    gap: '10px',
-    padding: '10px',
-    maxWidth: '400px',
+    flexWrap: 'wrap',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    gap: space.md,
+    marginBottom: space.lg,
   },
-  input: {
-    height: '35px',
-    borderRadius: '5px',
+  title: {
+    ...heading.h1,
   },
-  textarea: {
-    height: '100px',
-    borderRadius: '5px',
+  subtitle: {
+    margin: 0,
+    fontSize: font.size.sm,
+    color: colors.textMuted,
   },
-  btn: {
-    cursor: 'pointer',
-    height: '35px',
-    border: 'solid black',
-    borderWidth: '1px',
-    borderRadius: '5px',
+  primaryBtn: {
+    ...button.primary,
+  },
+  secondaryBtn: {
+    ...button.secondary,
+  },
+  confirmDeleteBtn: {
+    ...button.primary,
+  },
+  confirmText: {
+    margin: 0,
+    fontSize: font.size.sm,
+    lineHeight: 1.6,
+  },
+  tableWrap: {
+    ...card,
+    overflowX: 'auto',
   },
   table: {
     width: '100%',
     borderCollapse: 'collapse',
-    marginTop: '20px',
+    fontSize: font.size.sm,
   },
-  header: {
-    backgroundColor: '#333',
-    color: 'white',
-    padding: '12px',
+  th: {
+    padding: `${space.sm} ${space.md}`,
     textAlign: 'left',
+    fontSize: font.size.xs,
+    fontWeight: font.weight.bold,
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px',
+    color: colors.textMuted,
+    background: colors.surfaceAlt,
+    borderBottom: `1px solid ${colors.border}`,
+    whiteSpace: 'nowrap',
   },
   cell: {
-    border: '1px solid #ddd',
-    padding: '12px',
+    padding: space.md,
+    borderBottom: `1px solid ${colors.border}`,
+    verticalAlign: 'middle',
+  },
+  nameCell: {
+    fontWeight: font.weight.semibold,
+  },
+  actionsCol: {
+    textAlign: 'right',
+    whiteSpace: 'nowrap',
   },
   btnBox: {
-    display: 'flex',
-    gap: 10,
+    display: 'inline-flex',
+    gap: space.xs,
+  },
+  rowBtn: {
+    ...button.secondary,
+    ...button.small,
+  },
+  rowBtnDanger: {
+    ...button.danger,
+    ...button.small,
+  },
+  empty: {
+    ...card,
+    textAlign: 'center',
+    padding: `${space.xxl} ${space.md}`,
+    borderStyle: 'dashed',
+  },
+  emptyTitle: {
+    margin: `0 0 ${space.xs}`,
+    fontSize: font.size.lg,
+    fontWeight: font.weight.semibold,
+  },
+  emptyText: {
+    margin: 0,
+    fontSize: font.size.sm,
+    color: colors.textMuted,
+  },
+  errorBox: {
+    ...card,
+    padding: space.lg,
+    border: `2px solid ${colors.ink}`,
+    background: colors.surfaceAlt,
+    fontSize: font.size.sm,
   },
 }

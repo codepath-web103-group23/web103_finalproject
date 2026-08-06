@@ -14,7 +14,9 @@ const addToKitchen = async (req, res) => {
     const result = await model.addToKitchen(req, res)
     res.status(201).json(result)
   } catch (err) {
-    res.status(500).json({ message: err.message })
+    // The model tags expected failures (duplicate, missing ingredient) with a
+    // status so the client can show the real reason instead of a blanket 500.
+    res.status(err.status || 500).json({ message: err.message })
   }
 }
 
@@ -27,8 +29,18 @@ const removeFromKitchen = async (req, res) => {
   }
 }
 
+const cookRecipe = async (req, res) => {
+  try {
+    const result = await model.cookRecipe(req, res)
+    res.status(200).json(result)
+  } catch (err) {
+    res.status(err.status || 500).json({ message: err.message })
+  }
+}
+
 export default {
   getKitchen,
   addToKitchen,
   removeFromKitchen,
+  cookRecipe,
 }

@@ -11,3 +11,6 @@
 
 # modules
 node_modules
+
+# client build output (vite builds into server/public)
+server/public
